@@ -46,7 +46,7 @@ pip install .
 After installation, use the CLI to anonymize a report:
 
 ```bash
-python -m dutch_med_hips.main \
+hips \
   --input_file path/to/input_report.txt \
   --output_file path/to/output_report.txt \
   --seed 42
