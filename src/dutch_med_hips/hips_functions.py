@@ -272,8 +272,19 @@ class HideInPlainSight:
         config = self.weights_config["dates"]
 
         # Generate random date
-        start_date = date(2000, 1, 1)
-        end_date = date.today()
+        start_date = date(
+            config["start_date"]["year"],
+            config["start_date"]["month"],
+            config["start_date"]["day"],
+        )
+        if config["end_date"]["use_today"]:
+            end_date = date.today()
+        else:
+            end_date = date(
+                config["end_date"]["year"],
+                config["end_date"]["month"],
+                config["end_date"]["day"],
+            )
         total_days = (end_date - start_date).days
         random_days = random.randint(0, total_days)
         random_date = start_date + timedelta(days=random_days)
@@ -490,11 +501,11 @@ class HideInPlainSight:
             name_abbreviation += character.upper() if uppercase else character.lower()
 
             # Occasionally add a space
-            if np.random.rand() < config["space_probability"]:
+            if np.random.rand() < config["add_space"]:
                 name_abbreviation += " "
 
             # Occasionally add an abbreviated infix
-            if np.random.rand() < config["add_infix_probability"]:
+            if np.random.rand() < config["add_infix"]:
                 name_abbreviation += np.random.choice(abbreviated_infixes)
 
         return name_abbreviation.strip()
@@ -503,13 +514,13 @@ class HideInPlainSight:
         config = self.weights_config["hospital"]
 
         # Probabilistic controls
-        use_observed = random.random() < config["use_observed_probability"]
-        make_uppercase = random.random() < config["make_uppercase_probability"]
-        make_lowercase = random.random() < config["make_lowercase_probability"]
-        add_typing_error = random.random() < config["add_typing_error_probability"]
-        add_hospital_word = random.random() < config["add_hospital_word_probability"]
-        add_word_at_end = random.random() < config["add_word_at_end_probability"]
-        make_word_title = random.random() < config["hospital_word_title_probability"]
+        use_observed = random.random() < config["use_observed"]
+        make_uppercase = random.random() < config["make_uppercase"]
+        make_lowercase = random.random() < config["make_lowercase"]
+        add_typing_error = random.random() < config["add_typing_error"]
+        add_hospital_word = random.random() < config["add_hospital_word"]
+        add_word_at_end = random.random() < config["add_word_at_end"]
+        make_word_title = random.random() < config["hospital_word_title"]
 
         if use_observed:
             hospital_name = np.random.choice(self.observed_hospital_names)
@@ -586,23 +597,23 @@ class HideInPlainSight:
 
         # Decide whether to add UZR number
         add_number_prob = (
-            config["add_number_probability"]["if_postfix_is_studiecode"]
+            config["add_number"]["if_postfix_is_studiecode"]
             if postfix == "studiecode"
-            else config["add_number_probability"]["default"]
+            else config["add_number"]["default"]
         )
         if random.random() < add_number_prob:
             study_name += " UZR" + self.generate_random_number_sequence(4)
 
         # Add random noise
-        if random.random() < config["add_typing_error_probability"]:
+        if random.random() < config["add_typing_error"]:
             study_name = self.add_spelling_error(study_name)
 
-        if random.random() < config["all_uppercase_probability"]:
+        if random.random() < config["all_uppercase"]:
             study_name = study_name.upper()
-        elif random.random() < config["all_lowercase_probability"]:
+        elif random.random() < config["all_lowercase"]:
             study_name = study_name.lower()
 
-        if random.random() < config["remove_spaces_probability"]:
+        if random.random() < config["remove_spaces"]:
             study_name = study_name.replace(" ", "")
 
         return study_name
