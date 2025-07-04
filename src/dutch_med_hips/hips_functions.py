@@ -36,6 +36,7 @@ class HideInPlainSight:
         self.observed_hospital_names = load_json(
             self.lookup_dir / "observed_hospital_names.json"
         )
+        self.study_names = load_json(self.lookup_dir / "studies.json")
         self.weights_config = load_json(self.config_dir / "config.json")
 
         # Sorted lists for consistency with seed
@@ -544,55 +545,13 @@ class HideInPlainSight:
     def hips_study_name(self, match) -> str:
         config = self.weights_config["study_name"]
 
-        # Pool of trial names
-        study_pool = [
-            "LEMA",
-            "Donan",
-            ("M-SPECT", "mSPECT"),
-            "CAELC",
-            "PINNACLE",
-            "M18ICR",
-            "4M",
-            ("Alpe d'Huzes MRI", "Alpe d' Huzes MRI", "Alpe"),
-            "N21SPL",
-            "M21MUP",
-            "M13PSN",
-            "B18NCI",
-            "CFMPB 293",
-            "N18WGS - 2",
-            "IRBm19-124",
-            "DARANA",
-            "M19OTE-1",
-            "N14DAR",
-            "PROMPT",
-            "TULIP",
-            "N18CLI",
-            "BIA",
-            ("MR-PRIAS", "MRPRIAS", "PRIAS"),
-            "CFMPB484",
-            "CLIPPS",
-            "CFMPB283",
-            "N13PSN",
-            "N12IGP",
-            "M11TOO",
-            "M20FRM",
-            "TOOKAD",
-            "colopec",
-            "DC vacc",
-            "MDV-3800",
-            "Keynote-199",
-            "HOVON",
-            "G250",
-            "CAIRO",
-            "M14CDP-1",
-            "Luctas",
-            "TARZAN",
-        ]
-
         # Choose study name (randomly handle aliases)
+        study_pool = self.study_names["study_pool"]
         base_name = random.choice(study_pool)
         study_name = (
-            random.choice(base_name) if isinstance(base_name, tuple) else base_name
+            random.choice(base_name)
+            if isinstance(base_name, (list, tuple))
+            else base_name
         )
 
         # Choose postfix and infix
