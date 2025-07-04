@@ -164,6 +164,10 @@
             "choices": [
                 ":",
                 "u"
+            ],
+            "weights": [
+                0.80,
+                0.20
             ]
         }
     },
@@ -174,6 +178,12 @@
                 "sein",
                 "mobile",
                 "landline"
+            ],
+            "weights": [
+                0.4,
+                0.4,
+                0.1,
+                0.1
             ]
         },
         "separator": {
@@ -181,12 +191,21 @@
                 "",
                 "-",
                 " "
+            ],
+            "weights": [
+                0.4,
+                0.3,
+                0.3
             ]
         },
         "add_prefix": {
             "choices": [
                 true,
                 false
+            ],
+            "weights": [
+                0.3,
+                0.7
             ]
         }
     },

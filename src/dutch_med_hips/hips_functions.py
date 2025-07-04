@@ -323,7 +323,10 @@ class HideInPlainSight:
         only_hour = random.choices(
             config["only_hour"]["choices"], weights=config["only_hour"]["weights"]
         )[0]
-        time_separator = random.choice(config["time_separator"]["choices"])
+        time_separator = random.choices(
+            config["time_separator"]["choices"],
+            weights=config["time_separator"]["weights"],
+        )[0]
 
         # Format the time
         new_time = str(random_hour).zfill(2)
@@ -338,9 +341,16 @@ class HideInPlainSight:
         config = self.weights_config["phone_number"]
 
         # Draw configuration options from config
-        phone_format = random.choice(config["format"]["choices"])
-        separator = random.choice(config["separator"]["choices"])
-        add_prefix = random.choice(config["add_prefix"]["choices"])
+        phone_format = random.choices(
+            config["phone_format"]["choices"],
+            weights=config["phone_format"]["weights"],
+        )[0]
+        separator = random.choices(
+            config["separator"]["choices"], weights=config["separator"]["weights"]
+        )[0]
+        add_prefix = random.choices(
+            config["add_prefix"]["choices"], weights=config["add_prefix"]["weights"]
+        )[0]
 
         # Format phone number based on type
         if phone_format == "internal":
