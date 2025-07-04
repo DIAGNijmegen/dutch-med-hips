@@ -102,6 +102,7 @@ The following tags in the report will be replaced:
 The package loads a configuration files and multiple lookup lists from its `config/` directory.
 Modify these files to adjust behavior without changing the code.
 In particular, `config/config.json` contains weights for various replacement strategies. Adjust these to fit your dataset needs.
+
 ---
 
 ## 📁 Project Structure
