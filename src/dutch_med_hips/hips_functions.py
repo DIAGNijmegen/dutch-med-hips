@@ -207,6 +207,14 @@ class HideInPlainSight:
             config["amount_of_initials"]["choices"],
             weights=config["amount_of_initials"]["weights"],
         )[0]
+        double_family_name = random.choices(
+            config["double_family_name"]["choices"],
+            weights=config["double_family_name"]["weights"],
+        )[0]
+        double_family_name_separator = random.choices(
+            config["double_family_name_separator"]["choices"],
+            weights=config["double_family_name_separator"]["weights"],
+        )[0]
         add_title = random.choices(
             config["add_title"]["choices"], weights=config["add_title"]["weights"]
         )[0]
@@ -217,6 +225,10 @@ class HideInPlainSight:
             if rare_last_name
             else random.choice(self.common_names["family_names"])
         )
+        if double_family_name:
+            family_name += double_family_name_separator + random.choice(
+                self.common_names["family_names"]
+            )
         first_name = (
             random.choice(self.first_names_list)
             if rare_first_name
