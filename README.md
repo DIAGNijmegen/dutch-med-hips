@@ -105,19 +105,6 @@ In particular, `config/config.json` contains weights for various replacement str
 
 ---
 
-## 📁 Project Structure
-
-```bash
-dutch_med_hips/
-│
-├── hips_functions.py   # Main class for all HIPS replacements
-├── main.py             # CLI entry point
-├── config/             # Global and per-entity config
-└── lookup_lists/       # Static data (names, cities, hospitals, etc.)
-```
-
----
-
 ## 🤝 Contributing
 
 Want to help improve Dutch Med HIPS?
