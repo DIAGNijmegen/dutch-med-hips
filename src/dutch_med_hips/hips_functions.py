@@ -279,8 +279,13 @@ class HideInPlainSight:
         random_date = start_date + timedelta(days=random_days)
 
         # Pull random config options
-        named_month = random.choice(config["named_month"]["choices"])
-        add_year = random.choice(config["add_year"]["choices"])
+        named_month = random.choices(
+            config["named_month"]["choices"],
+            weights=config["named_month"]["weights"],
+        )[0]
+        add_year = random.choices(
+            config["add_year"]["choices"], weights=config["add_year"]["weights"]
+        )[0]
         formatting = random.choices(
             config["formatting"]["choices"], weights=config["formatting"]["weights"]
         )[0]

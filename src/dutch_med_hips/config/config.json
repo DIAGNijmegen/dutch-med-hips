@@ -106,12 +106,20 @@
             "choices": [
                 true,
                 false
+            ],
+            "weights": [
+                0.5,
+                0.5
             ]
         },
         "add_year": {
             "choices": [
                 true,
                 false
+            ],
+            "weights": [
+                0.3,
+                0.7
             ]
         },
         "formatting": {
