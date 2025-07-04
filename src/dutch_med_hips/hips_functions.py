@@ -93,6 +93,22 @@ class HideInPlainSight:
         capitalized_string = " ".join(capitalized_words)
         return capitalized_string
 
+    def abbreviate_name(self, name, surname_letters=3, infix_list=None):
+        parts = name.split()
+        abbreviation = ""
+
+        for i, part in enumerate(parts):
+            if part.lower() in infix_list:
+                abbreviation += part[0].lower()
+            else:
+                # Only apply letter limit to the last part (main surname)
+                if i == len(parts) - 1:
+                    abbreviation += part[:surname_letters].capitalize()
+                else:
+                    abbreviation += part  # Optional: handle unexpected structure
+
+        return abbreviation
+
     def add_spelling_error(self, string: str) -> str:
         error_type = random.choice(["insertion", "deletion", "substitution"])
         input_list = list(string)
@@ -473,42 +489,127 @@ class HideInPlainSight:
 
     def hips_person_name_abbreviation(self, match) -> str:
         config = self.weights_config["person_name_abbreviation"]
+        based_on_name = random.random() < config["abbreviation_based_on_name"]
 
-        # Choose length of abbreviation
-        length = np.random.choice(
-            config["length_distribution"]["choices"],
-            p=config["length_distribution"]["weights"],
-        )
+        if based_on_name:
+            config = config["based_on_name"]
+            # Pick names
+            family_name = random.choice(self.common_names["family_names"])
+            first_name = random.choice(self.common_names["first_names"])
 
-        # Prepare abbreviation
-        name_abbreviation = ""
-        abbreviated_infixes = sorted(
-            list(set([infix[0] for infix in self.infixes["infixes"]]))
-        )
+            capitalize = random.random() < config["capitalize"]
+            capitalize_all = random.random() < config["capitalize_all"]
+            add_space = random.random() < config["add_space"]
+            number_of_first_name_letters = random.choices(
+                config["number_of_first_name_letters"]["choices"],
+                weights=config["number_of_first_name_letters"]["weights"],
+            )[0]
 
-        for i in range(length):
-            # Choose letter case
-            uppercase_prob = (
-                config["uppercase_first"] if i == 0 else config["uppercase_rest"]
+            number_of_family_name_letters = random.choices(
+                config["number_of_family_name_letters"]["choices"],
+                weights=config["number_of_family_name_letters"]["weights"],
+            )[0]
+
+            # Enforce the rule: if first name has 0 letters, family name can't have 1
+            if number_of_first_name_letters == 0 and number_of_family_name_letters == 1:
+                # Re-roll until it's not 1
+                valid_family_choices = [
+                    val
+                    for val in config["number_of_family_name_letters"]["choices"]
+                    if val != 1
+                ]
+                valid_weights = [
+                    w
+                    for v, w in zip(
+                        config["number_of_family_name_letters"]["choices"],
+                        config["number_of_family_name_letters"]["weights"],
+                    )
+                    if v != 1
+                ]
+                number_of_family_name_letters = random.choices(
+                    valid_family_choices, weights=valid_weights
+                )[0]
+
+            if capitalize:
+                family_name = self.capitalize_words_except_infixes(
+                    family_name, self.infixes["infixes"]
+                )
+                first_name = self.capitalize_words_except_infixes(
+                    first_name, self.infixes["infixes"]
+                )
+
+            name_abbreviation = "".join(
+                [
+                    first_name[i]
+                    for i in range(min(number_of_first_name_letters, len(first_name)))
+                ]
             )
-            uppercase = np.random.rand() < uppercase_prob
 
-            # Pick a character based on distribution
-            character = np.random.choice(
-                list(self.character_distribution.keys()),
-                p=list(self.character_distribution.values()),
-            )
-            name_abbreviation += character.upper() if uppercase else character.lower()
-
-            # Occasionally add a space
-            if np.random.rand() < config["add_space"]:
+            if add_space:
                 name_abbreviation += " "
 
-            # Occasionally add an abbreviated infix
-            if np.random.rand() < config["add_infix"]:
-                name_abbreviation += np.random.choice(abbreviated_infixes)
+            name_abbreviation += self.abbreviate_name(
+                family_name,
+                surname_letters=number_of_family_name_letters,
+                infix_list=self.infixes["infixes"],
+            )
 
-        return name_abbreviation.strip()
+            if capitalize_all:
+                name_abbreviation = name_abbreviation.upper()
+            return name_abbreviation.strip()
+
+        else:
+            config = config["random"]
+            # Choose length of abbreviation
+            length = np.random.choice(
+                config["length_distribution"]["choices"],
+                p=config["length_distribution"]["weights"],
+            )
+
+            # Prepare abbreviation
+            name_abbreviation = ""
+            abbreviated_infixes = sorted(
+                list(
+                    set(
+                        [
+                            infix[0].strip(
+                                " .,'\"-"
+                            )  # remove unwanted leading characters
+                            for infix in self.infixes["infixes"]
+                            if infix
+                            and infix[0].strip(
+                                " .,'\"-"
+                            )  # ensure non-empty after stripping
+                        ]
+                    )
+                )
+            )
+
+            for i in range(length):
+                # Choose letter case
+                uppercase_prob = (
+                    config["uppercase_first"] if i == 0 else config["uppercase_rest"]
+                )
+                uppercase = np.random.rand() < uppercase_prob
+
+                # Pick a character based on distribution
+                character = np.random.choice(
+                    list(self.character_distribution.keys()),
+                    p=list(self.character_distribution.values()),
+                )
+                name_abbreviation += (
+                    character.upper() if uppercase else character.lower()
+                )
+
+                # Occasionally add a space
+                if np.random.rand() < config["add_space"]:
+                    name_abbreviation += " "
+
+                # Occasionally add an abbreviated infix
+                if np.random.rand() < config["add_infix"]:
+                    name_abbreviation += np.random.choice(abbreviated_infixes)
+
+            return name_abbreviation.strip()
 
     def hips_hospital(self, match) -> str:
         config = self.weights_config["hospital"]

@@ -295,28 +295,58 @@
         }
     },
     "person_name_abbreviation": {
-        "length_distribution": {
-            "choices": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6
-            ],
-            "weights": [
-                0.01,
-                0.05,
-                0.2,
-                0.6,
-                0.07,
-                0.07
-            ]
+        "abbreviation_based_on_name": 0.9,
+        "based_on_name": {
+            "number_of_first_name_letters": {
+                "choices": [
+                    0,
+                    1
+                ],
+                "weights": [
+                    0.3,
+                    0.7
+                ]
+            },
+            "number_of_family_name_letters": {
+                "choices": [
+                    1,
+                    2,
+                    3
+                ],
+                "weights": [
+                    0.3,
+                    0.3,
+                    0.4
+                ]
+            },
+            "capitalize": 0.9,
+            "add_space": 0.01,
+            "capitalize_all": 0.05
         },
-        "uppercase_first": 0.9,
-        "uppercase_rest": 0.5,
-        "add_space": 0.01,
-        "add_infix": 0.1
+        "random": {
+            "length_distribution": {
+                "choices": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                ],
+                "weights": [
+                    0.01,
+                    0.05,
+                    0.2,
+                    0.6,
+                    0.07,
+                    0.07
+                ]
+            },
+            "uppercase_first": 0.9,
+            "uppercase_rest": 0.5,
+            "add_space": 0.01,
+            "add_infix": 0.1
+        }
     },
     "hospital": {
         "use_observed": 0.1,
