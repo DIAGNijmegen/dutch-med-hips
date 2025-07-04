@@ -98,9 +98,9 @@ G. Bekaert
 05:46
 
 # Telefoonnummers
-7025
-6232
-0545635770
+4871
+3697
+0674903294
 sein 9221
 75631
 sein 7827
@@ -112,8 +112,6 @@ sein 8042
 94972
 
 # Patientnummers
-9260893
-2916107
 4024269
 2634980
 1362099
@@ -124,10 +122,10 @@ sein 8042
 1010496
 9540019
 5123430
+7194570
+9873813
 
 # Z-nummers
-Z305407
-Z492738
 Z622656
 Z722858
 Z472387
@@ -135,10 +133,10 @@ Z428361
 Z002805
 Z164136
 Z078711
+Z578805
+Z182256
 
 # Plaatsen
-Eerde
-Deurne
 Schimmert
 Bangeweer
 Kubaard
@@ -149,6 +147,8 @@ Sint-bartholomeus
 Etzenrade
 Den Ilp
 Alteveer
+Eyserheide
+Lelystad
 
 # Rapport-IDs
 T90-20758
@@ -248,33 +248,33 @@ RPA 14-60482
 40
 
 # Persoonsafkortingen
-Oano
-LNhn
-Eaevd
-AhRE
-EaWb
-UEtP
-IekNaeK
-TTsi
-TtGEE
-NeEZE
-HEl
+Iano
+SNgn
+Eaemo
+AvRE
+EaBw
+MEtP
+DehNaeV
+TTdi
+ItGEE
+NeEBE
+GEl
 RE
-LKrlT
-BcNMaf
-oIRJ
-OEGr
-Evpt
+SVrsT
+JcNKac
+iDRF
+IELr
+Nkpt
 SAnrv
 LrEe
-WF
-RAlnE
-UOanz
-HEiDr
-DmiAo
-mä²EN
-AÄ²di
-EBER
+BC
+RAsnE
+MIanz
+GEiOr
+OkiAi
+kzEA
+AZoi
+EWEI
 
 # Ziekenhuizen
 ziekenhuisAmstelveen Amsteliland
