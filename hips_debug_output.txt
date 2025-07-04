@@ -1,0 +1,178 @@
+##############################
+DISCLAIMER: 
+THIS REPORT HAS BEEN ANONYMIZED BY REPLACING PATIENT HEALTH INFORMATION WITH RANDOM SURROGATES.
+ANY RESEMBLANCE TO REAL PERSONS, LIVING OR DEAD, IS PURELY COINCIDENTAL.
+##############################
+
+# Personen
+B. de Backer
+Elizabeth van Gool
+M. R. Roest
+Colin, Q. J.
+Ooms
+mads schoenmakers
+Leni Nijenhuis
+O. L. J. Dekkers
+Z. Vincent
+verbeke
+Sanders, B.
+Donkers
+Helene Stevens
+r. j. v. d. alberts
+vogel
+Gerritsen
+Smits
+Nanda Zegers
+de Bruijn, J. G.
+Aaltjen Janse
+thomas
+de Pauw
+Hoek
+Hopeton Meunier
+gerbrand prins
+van de Laar
+y. van deursen
+Juliette Visser
+U. J. U. Q. Nicolas
+pierre
+Krol
+Kusters
+roelofs
+Redouan van Dam
+Hendrikje van Arkel
+B. V. H. van den Boom
+Annetta van Houten
+van der Zee
+G. Bekaert
+
+# Datums
+14 febr 2006
+20/09
+25/12/2010
+
+# Tijden
+21u33
+03u29
+22:33
+
+# Telefoonnummers
+0669967676
+7373
+079 7481188
+
+# Patientnummers
+4606980
+4013879
+8130188
+
+# Z-nummers
+Z748206
+Z081247
+Z461239
+
+# Plaatsen
+Elahuizen
+Deventer
+Espelo
+
+# Rapport-IDs
+T98-612451
+T 42-568969
+T 29-50205
+
+# Rapport-IDs T-nummer
+T13-91382
+T50-987203
+T 39-14168
+
+# Rapport-IDs R-nummer
+R21-635324
+R 85-119946
+Rextern 31-26130
+
+# Rapport-IDs C-nummer
+C28-681725
+C32-875467
+C 43-798207
+
+# Rapport-IDs DPA-nummer
+DPA59-23819
+DPA50-77580
+DPA 92-173061
+
+# Rapport-IDs RPA-nummer
+RPA28-286193
+T 68-783826
+T61-006182
+
+# PHI nummers
+364069
+834904
+91839693
+
+# Leeftijden
+51
+68
+40
+
+# Persoonsafkortingen
+Ollua
+o
+Ew
+
+# Ziekenhuizen
+MMC
+ziekenhuis Erasmus MC (Zuid-Hopland)
+Medisch Centrum Leeuwarden (Leeuwarden en Harlingen) Ziekenhuis
+
+# Accredatie nummers
+M475
+M768
+M249
+
+# Studie namen
+DARANA studie
+BIA
+G250 studie
+
+
+
+TneM
+NoeOD
+NaNr
+EAKue
+EEWE
+aIZC
+DElA
+QpESS
+v'otEi
+Dlsb
+JzhI
+Oano
+LNhn
+Eaevd
+AhRE
+EaWb
+UEtP
+KNaeK
+Tsivd
+NEdEOh
+EtRB
+Reia
+LTOe
+AdId
+ETN
+NeUD
+nJeARDt
+LUs
+MRCä²
+IMDba
+NeES
+Ev NaÄ²
+NiU
+DtIn
+HVAu
+ZAaKn
+SEaÄ²
+EHeB
+mA

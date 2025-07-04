@@ -1,0 +1,355 @@
+{
+    "person_names": {
+        "name_config": {
+            "choices": [
+                "first_name",
+                "family_name",
+                "full_name"
+            ],
+            "weights": [
+                0.01,
+                0.95,
+                0.8
+            ]
+        },
+        "rare_first_name": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.01,
+                0.99
+            ]
+        },
+        "rare_last_name": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.01,
+                0.99
+            ]
+        },
+        "spelling_error": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.01,
+                0.99
+            ]
+        },
+        "capitalization": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.8,
+                0.2
+            ]
+        },
+        "full_first_name": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ]
+        },
+        "first_name_first": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.9,
+                0.1
+            ]
+        },
+        "amount_of_initials": {
+            "choices": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "weights": [
+                0.55,
+                0.30,
+                0.10,
+                0.04,
+                0.01
+            ]
+        },
+        "add_title": {
+            "choices": [
+                "none",
+                "before",
+                "after"
+            ],
+            "weights": [
+                1.0,
+                0.0,
+                0.0
+            ]
+        }
+    },
+    "dates": {
+        "named_month": {
+            "choices": [
+                true,
+                false
+            ]
+        },
+        "add_year": {
+            "choices": [
+                true,
+                false
+            ]
+        },
+        "formatting": {
+            "choices": [
+                "-",
+                "/",
+                " ",
+                ".",
+                ""
+            ],
+            "weights": [
+                0.25,
+                0.25,
+                0.25,
+                0.2375,
+                0.0125
+            ]
+        },
+        "month_spelling_error": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.01,
+                0.99
+            ]
+        }
+    },
+    "time": {
+        "only_hour": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.1,
+                0.9
+            ]
+        },
+        "time_separator": {
+            "choices": [
+                ":",
+                "u"
+            ]
+        }
+    },
+    "phone_number": {
+        "format": {
+            "choices": [
+                "internal",
+                "sein",
+                "mobile",
+                "landline"
+            ]
+        },
+        "separator": {
+            "choices": [
+                "",
+                "-",
+                " "
+            ]
+        },
+        "add_prefix": {
+            "choices": [
+                true,
+                false
+            ]
+        }
+    },
+    "rapport_id": {
+        "type_probabilities": {
+            "T": 0.86,
+            "R": 0.095,
+            "DPA": 0.02,
+            "C": 0.02,
+            "RPA": 0.005
+        },
+        "type_overrides": {
+            "T": {
+                "T": 0.94,
+                "R": 0.02,
+                "DPA": 0.019,
+                "C": 0.019,
+                "RPA": 0.002
+            },
+            "R": {
+                "R": 0.94,
+                "T": 0.02,
+                "DPA": 0.019,
+                "C": 0.019,
+                "RPA": 0.002
+            },
+            "C": {
+                "C": 0.94,
+                "T": 0.02,
+                "R": 0.019,
+                "DPA": 0.019,
+                "RPA": 0.002
+            },
+            "DPA": {
+                "DPA": 0.94,
+                "T": 0.02,
+                "R": 0.019,
+                "C": 0.019,
+                "RPA": 0.002
+            },
+            "RPA": {
+                "RPA": 0.94,
+                "T": 0.02,
+                "R": 0.019,
+                "DPA": 0.019,
+                "C": 0.002
+            }
+        },
+        "extensions": {
+            "choices": [
+                "",
+                "extern",
+                "oorspronkelijk"
+            ],
+            "weights": [
+                0.95,
+                0.025,
+                0.025
+            ]
+        },
+        "space": {
+            "choices": [
+                true,
+                false
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ]
+        },
+        "number_length_range": {
+            "min": 5,
+            "max": 6
+        }
+    },
+    "person_name_abbreviation": {
+        "length_distribution": {
+            "choices": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "weights": [
+                0.01,
+                0.05,
+                0.2,
+                0.6,
+                0.07,
+                0.07
+            ]
+        },
+        "uppercase_first": 0.9,
+        "uppercase_rest": 0.5,
+        "space_probability": 0.01,
+        "add_infix_probability": 0.1
+    },
+    "hospital": {
+        "use_observed_probability": 0.1,
+        "make_uppercase_probability": 0.05,
+        "make_lowercase_probability": 0.05,
+        "add_typing_error_probability": 0.5,
+        "add_hospital_word_probability": 0.5,
+        "hospital_word_choices": {
+            "choices": [
+                "ziekenhuis",
+                "zkhs",
+                "zh",
+                "zkh",
+                "kliniek"
+            ],
+            "weights": [
+                0.8,
+                0.05,
+                0.05,
+                0.05,
+                0.05
+            ]
+        },
+        "add_word_at_end_probability": 0.5,
+        "hospital_word_title_probability": 0.5,
+        "patterns": [
+            "{name}",
+            "{place}",
+            "MC {place}",
+            "{name}, {place}",
+            "{place}, {name}",
+            "{name} {place}",
+            "{place} {name}",
+            "{name} ({place})",
+            "{place} {name}"
+        ]
+    },
+    "study_name": {
+        "postfix": {
+            "choices": [
+                "",
+                "studie",
+                "studiecode",
+                "trial"
+            ],
+            "weights": [
+                0.4,
+                0.4,
+                0.1,
+                0.1
+            ]
+        },
+        "infix": {
+            "choices": [
+                " ",
+                ", ",
+                "-",
+                ""
+            ],
+            "weights": [
+                0.7,
+                0.1,
+                0.1,
+                0.1
+            ]
+        },
+        "add_number_probability": {
+            "default": 0.025,
+            "if_postfix_is_studiecode": 0.95
+        },
+        "add_typing_error_probability": 0.025,
+        "all_uppercase_probability": 0.025,
+        "all_lowercase_probability": 0.025,
+        "remove_spaces_probability": 0.025
+    }
+}
