@@ -5,300 +5,315 @@ ANY RESEMBLANCE TO REAL PERSONS, LIVING OR DEAD, IS PURELY COINCIDENTAL.
 ##############################
 
 # Personen
-Helsen
-van der Kolk
-Claassen
-Ana
-R. C. Berg
-Poppe
-Smid
-Heynsdijk
-Paulus
-engelen
-Kamp
-van den Berg
-Verbrugge
-van Oers
-Rademaker
-Tijssen
-Johwi Lecomte
-jochem rietveld
-Jayson van Berkel
-B. Lacroix
-Loos
-Melina de Heer
-van de Wiel
-Flament
-Damian Klijn
-Patty Arents
-Klijn
-Hoving
-Berg
-bosmans
-van Gestel, K. R. Z. P. C.
-sjoerdtje Sunterniklaas
-Massart, E. F.
-Jose Wessels
-sheila hendrikx
-van der Ploeg
-Verstappen
-Nathalie Ceulemans
-Nijssen
+B. de Backer
+Elizabeth van Gool
+M. R. Roest
+Colin, Q. J.
+Ooms
+mads schoenmakers
+Leni Nijenhuis
+O. L. J. Dekkers
+Z. Vincent
+verbeke
+Sanders, B.
+Donkers
+Helene Stevens
+r. j. v. d. alberts
+vogel
+Gerritsen
+Smits
+Nanda Zegers
+de Bruijn, J. G.
+Aaltjen Janse
+thomas
+de Pauw
+Hoek
+Hopeton Meunier
+gerbrand prins
+van de Laar
+y. van deursen
+Juliette Visser
+U. J. U. Q. Nicolas
+pierre
+Krol
+Kusters
+roelofs
+Redouan van Dam
+Hendrikje van Arkel
+B. V. H. van den Boom
+Annetta van Houten
+van der Zee
+G. Bekaert
 
 # Datums
-18 apr
-05 12
-24-11
-25 06
-04 03
-20 12 2011
-25 jun
-01.11
-24 december 2003
-27 jun
-24-04-2019
-14 nov 2016
-05 apr 2003
+27 december
+24 januari 2023
 06-06
-02.05
+23 nov
+14 juli 2013
+18 dec
+17 02 2005
+29/11/2000
+21-10
+04 april
+30 mei
+24 juni 2019
+03-09
+18 12
+29 december 2012
+30/06
+24 september 2021
+05 dec
+04-11-2014
+13 feb 2003
+26 juni
+09 06
+29 mei 2024
+08 11
+03 11
+27 aug
+12.10.2004
+14.08.2006
+05 augustus
+25.12
 
 # Tijden
-19 24
-18u27
-00:26
-16:00
-10 uur
-07:45
-01:47
-06:15
-09:25
-19:02
-12u06
-16u53
-02 51
-20:16
-19:04
-07:09
-20u22
-13:41
+03u47
+08:14
+10:22
+16u22
+09:42
+02:18
+20u45
+15:35
+16 uur
+19:44
+11:51
+15:54
+18:39
+08u56
+1054
+14:27
+19u51
+05:46
 
 # Telefoonnummers
-91672
-0646910160
-2869
-0168-745298
-00180
-0599 882031
-1183
-0314 150067
-sein 8050
-6805
-06-56678352
-06-07684287
+7025
+6232
+0545635770
+sein 9221
+75631
+sein 7827
+62746
+sein 8042
+07146
+0640569669
+1647
+94972
 
 # Patientnummers
-7030447
-6644273
-5684798
-6058729
-1851756
-3811882
-3267573
-4936386
-6324357
-9176381
-6372137
-4722516
+9260893
+2916107
+4024269
+2634980
+1362099
+4440025
+3540415
+3486102
+1664863
+1010496
+9540019
+5123430
 
 # Z-nummers
-Z885870
-Z496471
-Z482736
-Z904786
-Z109042
-Z826594
-Z865408
-Z379394
-Z931462
+Z305407
+Z492738
+Z622656
+Z722858
+Z472387
+Z428361
+Z002805
+Z164136
+Z078711
 
 # Plaatsen
-Middelbeers
-Oost-graftdijk
-Nieuw-schoonebeek
-Calfven
-Réunion
-Veldhoven
-Standdaarbuiten
-Brazilie
-Mariahout
-Langelille
-Bolberg
-Oosterbeek
+Eerde
+Deurne
+Schimmert
+Bangeweer
+Kubaard
+Wouterswoude
+Sint Joost
+Equatoriaal-guinea
+Sint-bartholomeus
+Etzenrade
+Den Ilp
+Alteveer
 
 # Rapport-IDs
-T 98-315670
-T 58-75335
-T 78-018260
-Textern 14-55050
-T 08-754454
-T03-85990
-T 77-62033
-T 88-84039
-R 85-243903
-T 22-31257
-T 10-61058
-T37-32816
-T42-221972
-T40-61212
-T 38-048587
+T90-20758
+T56-923634
+T80-463513
+T84-71118
+R11-329795
+T 36-694769
+T 41-702685
+T 81-853797
+T60-68021
+T 97-88117
+T 94-337978
+T 64-566211
+T56-130394
+T09-07816
+T54-15043
 
 # Rapport-IDs T-nummer
-T76-25820
-T76-805152
-Textern27-200588
-T33-431555
-T 41-826840
-T 56-625157
-R 68-950554
-T 03-585677
-T 95-11638
+T11-694963
+T50-36160
+T12-718987
+T 04-723811
+T 53-85841
+T 85-995497
+T 14-101913
+T 83-428129
+T78-232120
 
 # Rapport-IDs R-nummer
-R 40-29319
-R 25-19163
-R 15-012702
-R 82-919255
-R 66-635677
-R51-19147
-R 20-650412
-R 60-320097
-R73-724719
+R13-707617
+R 58-48311
+DPA71-383542
+R 18-98848
+R 37-782824
+R67-526169
+R95-435686
+R 04-607727
+R 80-12735
 
 # Rapport-IDs C-nummer
-C 79-059490
-C74-89697
-C 09-61129
-C 85-65694
-C14-54071
-C 36-491364
-C 52-175356
-Coorspronkelijk 93-087665
-C27-706686
+C 77-46179
+C77-97671
+C 02-870357
+C13-248728
+Toorspronkelijk 88-262246
+C 09-57898
+C 85-009853
+C63-76435
+C21-22946
 
 # Rapport-IDs DPA-nummer
-DPA 34-07511
-DPA03-32865
-DPA 38-94377
-DPA 53-08050
-DPA 90-435541
-DPA81-12804
-DPA89-45379
-DPA 01-112420
-DPA96-496622
+DPA 37-46984
+DPA56-21805
+DPA 95-11846
+DPA79-08968
+DPA40-657246
+DPA83-084216
+DPA 09-61537
+R 12-551499
+DPA 16-65836
 
 # Rapport-IDs RPA-nummer
-RPA59-10876
-RPA 76-42343
-RPA 71-75345
-RPA76-148693
-RPA 26-90880
-RPA 62-781750
-RPA77-86890
-RPAoorspronkelijk 83-087894
-RPA 28-36542
+RPA49-695928
+RPA29-897594
+RPA58-978166
+RPA19-468238
+RPA 00-296578
+RPA08-36208
+RPA58-72255
+T 65-739677
+RPA 14-60482
 
 # PHI nummers
-78206666
-168552
-924798605
-505713137
-39275235
-1008874
-09426925
-572881
-08326746
-802137391
-71297135
-483948
+693169
+23420607
+2180906
+290743
+19804386
+3909069
+9837875
+1151087
+9472046
+32691263
+825013
+0358318
 
 # Leeftijden
-53
-75
-63
-46
-55
-43
-61
-53
-73
+51
+45
+62
+52
+67
+41
+51
+68
+40
 
 # Persoonsafkortingen
-NzekKL
-ENvT
-NNdR
-LRvN
-IlED
-ZEbi
-g'HXE
-DTgVga
-DT'DUK
-ETS
-OztDT
-Obe
-AaEti
-SRaAsBM
-DÄ²Uk
-EDPr
-MdAdOl
-DerE'
-ERll
-TOuS
-RKto
-Arieo
-ENKu
-EkEI
-EAeSoM
-IaeE
-EEfev
+Oano
+LNhn
+Eaevd
+AhRE
+EaWb
+UEtP
+IekNaeK
+TTsi
+TtGEE
+NeEZE
+HEl
+RE
+LKrlT
+BcNMaf
+oIRJ
+OEGr
+Evpt
+SAnrv
+LrEe
+WF
+RAlnE
+UOanz
+HEiDr
+DmiAo
+mä²EN
+AÄ²di
+EBER
 
 # Ziekenhuizen
-Alkmaar, Medisch Centrum Alkmaar
-MC Utrecht
-Noord-Holland Amstelland
-Ziekenhuis Maasstad, Rotterdam
-Zuid-Holland Ziekenhuis
-Rotterdam Maasstad Zieenhuis
-zieknhuis Zuid-Holland
-Laurentius, Roermond
-Frnciscus Gasthuis & Vlietland
-maastricht zieenhuis
-ziekenhuis Maasstad (Rotterdam)
-MC Eindhoven Ziekemhuis
+ziekenhuisAmstelveen Amsteliland
+Gelderland Streekziekenhuis Koningin Beatrix
+Ziekenhuis Eindhoven
+Maasziekenhuis Pantein (Beugen) Ziekenhuis
+Amersoort
+Breda Amphia Ziekenhuis
+Ommelander Ziekenhuies Groningen, Scheemda Ziekenhuis
+ziekenhuis Symbiant, Alkmaar
+radboudMC (Gelderlanf) ziekenhuis
+zgt overijssel
+Rloermond ziekenhuis
+Amphia
 
 # Accredatie nummers
-M371
-M996
-M865
-M368
-M446
-M864
-M968
-M817
-M462
-M537
-M959
-M069
+M543
+M764
+M093
+M031
+M995
+M648
+M758
+M145
+M071
+M410
+M673
+M579
 
 # Studie namen
-Alpe d'Huzes MRI
-CFMPB484 studie
-PROMPT, studie
-TULIP studie
-CLIPPS trial
-B18NCI
-TULIP studie
-Alpe trial
-MR-PRIAS-studie
+PINNACLE
+MRPRIAS-studie
+IRBm19-124
+M18ICR studie
+CFMPB283
+Donan studie
+Keynote-199 studie
+N18WGS - 2, studie
+cairo studie
+N12IGP studie
 M14CDP-1
-LEMA studiecode UZR5434
-m14cdp-1 studie
+N18WGS - 2
