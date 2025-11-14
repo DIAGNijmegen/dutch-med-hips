@@ -4,13 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dutch-med-hips"
-version = "0.1.1"
+version = "1.0.0"
 description = "A hiding in plain sight module for Dutch medical text."
 authors = [{ name = "Luc Builtjes", email = "luc.builtjes@radboudumc.nl" }]
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.7"
-dependencies = ["numpy", "pandas", "scikit-learn", "unidecode", "jsonlines"]
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "unidecode",
+    "jsonlines",
+    "faker",
+]
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "twine"]
