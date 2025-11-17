@@ -17,8 +17,8 @@ from typing import Callable, Dict, List, Optional
 
 import typo
 
-from .constants import DEFAULT_PATTERNS, PHIType
-from .defaults import (
+from .schema import DEFAULT_PATTERNS, PHIType
+from .settings import (
     DEFAULT_ENABLE_HEADER,
     DEFAULT_ENABLE_RANDOM_TYPOS,
     DEFAULT_HEADER_TEMPLATE,

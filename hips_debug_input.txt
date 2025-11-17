@@ -91,6 +91,26 @@
 <TIJD>
 <TIJD>
 
+# Adressen
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+<ADRES>
+
+
+
 # Telefoonnummers
 <TELEFOONNUMMER>
 <TELEFOONNUMMER>

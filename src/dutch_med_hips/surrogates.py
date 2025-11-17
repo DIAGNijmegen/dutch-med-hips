@@ -11,8 +11,14 @@ from typing import Callable, Dict, List, Tuple
 
 from faker import Faker
 
-from .constants import PHIType
-from .defaults import (
+from .locale import (
+    DUTCH_AREA_CODES,
+    DUTCH_HOUR_WORDS,
+    DUTCH_MONTHS_ABBR,
+    DUTCH_MONTHS_FULL,
+)
+from .schema import PHIType
+from .settings import (
     AGE_GMM_MEANS,
     AGE_GMM_VARS,
     AGE_GMM_WEIGHTS,
@@ -29,58 +35,15 @@ from .defaults import (
     PERSON_NAME_MAX_INITIALS,
     PERSON_NAME_REVERSE_ORDER_PROB,
     PERSON_NAME_UPPERCASE_PROB,
+    PHONE_TYPE_LANDLINE_PROB,
+    PHONE_TYPE_MOBILE_PROB,
+    PHONE_TYPE_SEIN_PROB,
     TIME_ADD_HOUR,
     TIME_FMT_HH_DOT_MM_PROB,
     TIME_FMT_HH_MM_PROB,
     TIME_FMT_HH_U_MM_PROB,
     TIME_FMT_NATURAL_DUTCH_PROB,
 )
-
-_DUTCH_MONTHS_FULL = [
-    "januari",
-    "februari",
-    "maart",
-    "april",
-    "mei",
-    "juni",
-    "juli",
-    "augustus",
-    "september",
-    "oktober",
-    "november",
-    "december",
-]
-
-_DUTCH_MONTHS_ABBR = [
-    "jan",
-    "feb",
-    "mrt",
-    "apr",
-    "mei",
-    "jun",
-    "jul",
-    "aug",
-    "sep",
-    "okt",
-    "nov",
-    "dec",
-]
-
-_DUTCH_HOUR_WORDS = [
-    "twaalf",
-    "één",
-    "twee",
-    "drie",
-    "vier",
-    "vijf",
-    "zes",
-    "zeven",
-    "acht",
-    "negen",
-    "tien",
-    "elf",
-]
-
 
 # Single Faker instance for the whole module (Dutch locale)
 _fake = Faker("nl_NL")
@@ -246,7 +209,7 @@ def generate_fake_date(match: re.Match) -> str:
         # Named month
         use_abbr = _chance(DATE_MONTH_NAME_ABBR_PROB)
         month_str = (
-            _DUTCH_MONTHS_ABBR[month - 1] if use_abbr else _DUTCH_MONTHS_FULL[month - 1]
+            DUTCH_MONTHS_ABBR[month - 1] if use_abbr else DUTCH_MONTHS_FULL[month - 1]
         )
         # Always non-padded day here
         if with_year:
@@ -282,10 +245,10 @@ def _natural_dutch_time() -> str:
     """
     # Use 1–11 as base hour; we'll map 0 -> "twaalf"
     base_hour = random.randint(0, 11)  # 0..11 -> 12,1,..11
-    hour_word = _DUTCH_HOUR_WORDS[base_hour]
+    hour_word = DUTCH_HOUR_WORDS[base_hour]
 
     # "half vier" in Dutch means 3:30 (halfway to 4), so we need next hour word too
-    next_hour_word = _DUTCH_HOUR_WORDS[(base_hour + 1) % 12]
+    next_hour_word = DUTCH_HOUR_WORDS[(base_hour + 1) % 12]
 
     kind = random.choice(["kwart_voor", "kwart_over", "half", "uur"])
 
@@ -380,16 +343,76 @@ def generate_fake_age(match: re.Match) -> str:
 # --- Contact / location ------------------------------------------
 
 
+def _fake_mobile_number() -> str:
+    """
+    Generate a Dutch-looking mobile number.
+    """
+    suffix = random.randint(10_000_000, 99_999_999)  # 8 digits
+    style = random.choice(["dash", "space", "intl", "intl_brackets"])
+
+    if style == "dash":
+        return f"06-{suffix:08d}"
+    elif style == "space":
+        return f"06 {suffix:08d}"
+    elif style == "intl":
+        return f"+31 6 {suffix:08d}"
+    else:
+        return f"+31 (0)6 {suffix:08d}"
+
+
+def _fake_landline_number() -> str:
+    """
+    Generate a Dutch-looking landline / hospital main number.
+    """
+    area = random.choice(DUTCH_AREA_CODES)
+    # 7-digit subscriber part
+    rest = random.randint(1_000_000, 9_999_999)
+    style = random.choice(["dash", "space"])
+
+    if style == "dash":
+        return f"{area}-{rest:07d}"
+    else:
+        return f"{area} {rest:07d}"
+
+
+def _fake_sein_number() -> str:
+    """
+    Generate a hospital SEIN / pager number, usually 4 or 5 digits.
+    Examples in the wild: 2000, 59319, 55064, 5018, etc.
+    """
+    length = 4 if random.random() < 0.7 else 5
+    upper = 10**length - 1
+    num = random.randint(0, upper)
+    return f"{num:0{length}d}"
+
+
 def generate_fake_phone(match: re.Match) -> str:
-    """Generate a fake phone number (locale-aware for nl_NL)."""
-    return _fake.phone_number()
+    """
+    Generate a fake phone-like string that can be:
+    - a mobile number (06-xxxx xxxx)
+    - a landline/hospital number (0xx-xxxxxxx)
+    - an internal hospital SEIN number (4–5 digits)
+    """
+    idx = _choose_weighted_index(
+        [
+            PHONE_TYPE_MOBILE_PROB,
+            PHONE_TYPE_LANDLINE_PROB,
+            PHONE_TYPE_SEIN_PROB,
+        ]
+    )
+
+    if idx == 0:
+        return _fake_mobile_number()
+    elif idx == 1:
+        return _fake_landline_number()
+    else:
+        return _fake_sein_number()
 
 
 def generate_fake_address(match: re.Match) -> str:
-    """Generate a fake address (single-line)."""
-    # Faker's address includes newlines; we normalize to a single line.
-    addr = _fake.address().replace("\n", ", ")
-    return addr
+    """Generate a fake address."""
+    addr = _fake.address()
+    return addr + "\n"
 
 
 def generate_fake_location(match: re.Match) -> str:

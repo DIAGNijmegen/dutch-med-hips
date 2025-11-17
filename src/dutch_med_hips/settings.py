@@ -97,6 +97,17 @@ AGE_MIN: int = 0
 AGE_MAX: int = 105
 
 
+# --- Phone / SEIN formatting knobs --------------------------------
+
+# Relative frequency of different phone-like outputs
+# - mobile phone numbers (06-...)
+# - landline / hospital main numbers (0xx-...)
+# - internal SEIN/pager numbers (4–5 digits)
+PHONE_TYPE_MOBILE_PROB: float = 0.50  # e.g. "06-12345678"
+PHONE_TYPE_LANDLINE_PROB: float = 0.35  # e.g. "020-5669111"
+PHONE_TYPE_SEIN_PROB: float = 0.15  # e.g. "59319", "2000"
+
+
 # --- Header / disclaimer knobs ------------------------------------
 
 DEFAULT_ENABLE_HEADER: bool = True
