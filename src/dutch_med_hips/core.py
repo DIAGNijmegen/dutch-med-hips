@@ -8,13 +8,17 @@ Key public pieces:
 - HideInPlainSight: main anonymizer class.
 """
 
+import hashlib
 import random
 import re
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
+import typo
+
+from .chances import DEFAULT_ENABLE_RANDOM_TYPOS, TYPO_IN_SURROGATE_PROB
 from .constants import DEFAULT_PATTERNS, PHIType
-from .surrogates import DEFAULT_GENERATORS
+from .surrogates import DEFAULT_GENERATORS, seed_surrogates
 
 
 @dataclass
@@ -41,6 +45,61 @@ class PatternConfig:
     pattern: str
     generator: Callable[[re.Match], str]
     max_per_document: Optional[int] = None
+
+
+def _seed_from_text(text: str) -> int:
+    """
+    Derive a deterministic integer seed from the document text.
+
+    Uses SHA-256 and folds it into a 32-bit integer.
+    """
+    h = hashlib.sha256(text.encode("utf-8")).digest()
+    return int.from_bytes(h[:4], byteorder="big", signed=False)
+
+
+def _introduce_single_typo(text: str) -> str:
+    """
+    Introduce a single typo into `text` using the `typo` package.
+
+    We randomly choose one of:
+    - missing_char      (drop a character)
+    - char_swap         (swap adjacent characters)
+    - extra_char        (insert a keyboard-neighbor character)
+
+    We also preserve first/last characters to avoid completely
+    mangling short surrogates.
+    """
+    if not text or text.isspace():
+        return text
+
+    # pick an operation
+    op = random.choice(["missing_char", "char_swap", "extra_char"])
+
+    # tie typo's RNG to our own RNG by passing a seed derived from `random`
+    err = typo.StrErrer(text, seed=random.randint(0, 2**32 - 1))
+
+    if op == "missing_char":
+        return err.missing_char(preservefirst=True, preservelast=True).result
+    elif op == "char_swap":
+        return err.char_swap(preservefirst=True, preservelast=True).result
+    else:
+        # extra_char uses keyboard-neighbor by design
+        return err.extra_char(preservefirst=True, preservelast=True).result
+
+
+def _maybe_add_typo(text: str, enabled: bool, probability: float) -> tuple[str, bool]:
+    """
+    With given probability, introduce a single typo into `text`.
+
+    Returns (possibly_modified_text, typo_was_applied).
+    """
+    if not enabled or probability <= 0.0:
+        return text, False
+
+    if random.random() >= probability:
+        return text, False
+
+    return _introduce_single_typo(text), True
 
 
 def build_pattern_configs(
@@ -138,32 +197,35 @@ class HideInPlainSight:
     """
     Main engine that replaces regex-based PHI patterns with surrogates.
 
-    Usage
-    -----
-    from dutch_med_hips import HideInPlainSight, build_pattern_configs, PHIType
-
-    configs = build_pattern_configs()
-    hips = HideInPlainSight(configs, seed=42)
-
-    result = hips.anonymize("Patiënt <PERSOON> kwam op <DATE> en <RAPPORT_ID> ...")
-    print(result["text"])
-    print(result["mapping"])
+    Seeding behaviour:
+    - If `seed` is passed to anonymize(), that is used.
+    - Else if `default_seed` (constructor) is set, that is used.
+    - Else if `use_document_hash_seed` is True, a seed is derived
+      from the document text.
+    - Else: no seeding is performed (fully random).
     """
 
     def __init__(
         self,
         pattern_configs: Optional[List[PatternConfig]] = None,
         *,
-        seed: Optional[int] = None,
+        default_seed: Optional[int] = None,
+        use_document_hash_seed: bool = True,
+        enable_random_typos: bool = DEFAULT_ENABLE_RANDOM_TYPOS,
         custom_patterns_per_type: Optional[Dict[str, List[str]]] = None,
         max_per_document: Optional[Dict[str, int]] = None,
     ):
+        # Build default pattern configs if none supplied
         if pattern_configs is None:
             pattern_configs = build_pattern_configs(
                 custom_patterns_per_type=custom_patterns_per_type,
                 max_per_document=max_per_document,
             )
+
         self._pattern_configs = pattern_configs
+        self._default_seed = default_seed
+        self._use_document_hash_seed = use_document_hash_seed
+        self._enable_random_typos = enable_random_typos
 
         # Defensive: ensure no identical pattern string is used for different PHI types.
         pattern_owner: Dict[str, str] = {}
@@ -176,7 +238,7 @@ class HideInPlainSight:
                 )
             pattern_owner[cfg.pattern] = cfg.phi_type
 
-        # Build a combined regex with named groups so we know which config matched.
+        # Build combined regex with named groups
         group_parts: List[str] = []
         self._group_to_config: Dict[str, PatternConfig] = {}
 
@@ -191,32 +253,38 @@ class HideInPlainSight:
         else:
             self._combined_pattern = None
 
-        if seed is not None:
-            random.seed(seed)
-
     def run(
         self,
         text: str,
         keep_mapping: bool = True,
+        seed: Optional[int] = None,
     ) -> Dict[str, object]:
         """
         Replace all configured patterns in `text` with generated surrogates.
 
-        Parameters
-        ----------
-        text:
-            Input text containing PHI tags/patterns.
-        keep_mapping:
-            If True, returns a list of replacements with metadata.
-
-        Returns
-        -------
-        dict with keys:
-            - "text": anonymized text
-            - "mapping": list of replacement records (or None if keep_mapping=False)
+        Seeding priority:
+        1. `seed` argument (per-call)
+        2. `self._default_seed` (constructor)
+        3. hash of `text` if `self._use_document_hash_seed` is True
+        4. no seeding (random)
         """
         if self._combined_pattern is None:
             return {"text": text, "mapping": [] if keep_mapping else None}
+
+        # --- decide effective seed ---
+        if seed is not None:
+            effective_seed = seed
+        elif self._default_seed is not None:
+            effective_seed = self._default_seed
+        elif self._use_document_hash_seed:
+            effective_seed = _seed_from_text(text)
+        else:
+            effective_seed = None
+
+        # --- apply seeding ---
+        if effective_seed is not None:
+            random.seed(effective_seed)
+            seed_surrogates(effective_seed)
 
         per_type_counts: Dict[str, int] = {}
         mapping: List[Dict[str, object]] = []
@@ -234,6 +302,13 @@ class HideInPlainSight:
             surrogate = cfg.generator(match)
             per_type_counts[phi_type] = count + 1
 
+            # Maybe introduce a typo, depending on config and probability
+            surrogate, typo_applied = _maybe_add_typo(
+                surrogate,
+                enabled=self._enable_random_typos,
+                probability=TYPO_IN_SURROGATE_PROB,
+            )
+
             if keep_mapping:
                 mapping.append(
                     {
@@ -243,6 +318,7 @@ class HideInPlainSight:
                         "surrogate": surrogate,
                         "start": match.start(),
                         "end": match.end(),
+                        "typo_applied": typo_applied,
                     }
                 )
 

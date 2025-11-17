@@ -17,6 +17,7 @@ dependencies = [
     "unidecode",
     "jsonlines",
     "faker",
+    "typo",
 ]
 
 [project.optional-dependencies]
