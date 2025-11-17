@@ -4,12 +4,22 @@ Default surrogate generators for PHI types, using Faker.
 All generators take a `re.Match` object and return a surrogate string.
 """
 
+import random
 import re
 from typing import Callable, Dict
 
 from faker import Faker
 
 from .constants import PHIType
+from .defaults import (
+    PERSON_NAME_FIRST_ONLY_PROB,
+    PERSON_NAME_INITIALS_PROB,
+    PERSON_NAME_LAST_ONLY_PROB,
+    PERSON_NAME_LOWERCASE_PROB,
+    PERSON_NAME_MAX_INITIALS,
+    PERSON_NAME_REVERSE_ORDER_PROB,
+    PERSON_NAME_UPPERCASE_PROB,
+)
 
 # Single Faker instance for the whole module (Dutch locale)
 _fake = Faker("nl_NL")
@@ -25,9 +35,88 @@ def seed_surrogates(seed: int) -> None:
 # --- People ------------------------------------------------------
 
 
+def _first_name_to_initials(first_name: str, extra_count: int) -> str:
+    """
+    Convert a first name into a compact initials string.
+
+    - First initial always based on the given first_name.
+    - extra_count additional initials are based on extra random first names.
+    - Example outputs: "J.", "J.S.", "J.S.T."
+    """
+    initials = []
+
+    first_name = first_name.strip()
+    if first_name:
+        initials.append(first_name[0].upper() + ".")
+
+    for _ in range(extra_count):
+        extra = _fake.first_name().strip()
+        if extra:
+            initials.append(extra[0].upper() + ".")
+
+    # Join without spaces so you get "J.S.T." as a single token
+    return "".join(initials)
+
+
 def generate_fake_person_name(match: re.Match) -> str:
-    """Generate a fake (Dutch) person name."""
-    return _fake.name()
+    """
+    Generate a fake person name with:
+    - First / last / full name variants
+    - Initials only allowed when a last name is present (never lone initial)
+    - Multi-initials (J., J.S., J.S.T.) using up to PERSON_NAME_MAX_INITIALS
+    - Random capitalization
+    - Optional 'Lastname, First' format
+    """
+    first = _fake.first_name()
+    last = _fake.last_name()
+
+    # Decide basic structure: first-only, last-only, or full
+    r = random.random()
+    if r < PERSON_NAME_FIRST_ONLY_PROB:
+        structure = "first_only"
+    elif r < PERSON_NAME_FIRST_ONLY_PROB + PERSON_NAME_LAST_ONLY_PROB:
+        structure = "last_only"
+    else:
+        structure = "full"
+
+    # Decide whether to use initials.
+    # RULE 1: never a lone initial -> only allow initials when a last name is present.
+    use_initials = structure == "full" and random.random() < PERSON_NAME_INITIALS_PROB
+
+    if use_initials:
+        # Decide how many initials (1..PERSON_NAME_MAX_INITIALS)
+        max_n = max(1, PERSON_NAME_MAX_INITIALS)
+        extra_count = random.randint(0, max_n - 1)  # 0 extra -> 1 initial total
+        first_part = _first_name_to_initials(first, extra_count)
+    else:
+        first_part = first
+
+    # Build the parts according to the structure
+    if structure == "first_only":
+        parts = [first_part]
+    elif structure == "last_only":
+        parts = [last]
+    else:  # "full"
+        parts = [first_part, last]
+
+    # Maybe reverse order as "Lastname, First"
+    if len(parts) == 2 and random.random() < PERSON_NAME_REVERSE_ORDER_PROB:
+        parts = [parts[1] + ",", parts[0]]
+
+    name = " ".join(parts)
+
+    # Apply capitalization style
+    c = random.random()
+    if c < PERSON_NAME_LOWERCASE_PROB:
+        name = name.lower()
+    elif c < PERSON_NAME_LOWERCASE_PROB + PERSON_NAME_UPPERCASE_PROB:
+        name = name.upper()
+    else:
+        # Keep as-is (Faker returns Title Case by default,
+        # initials are already uppercase)
+        pass
+
+    return name
 
 
 def generate_fake_person_initials(match: re.Match) -> str:

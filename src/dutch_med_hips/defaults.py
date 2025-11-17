@@ -12,6 +12,32 @@ TYPO_IN_SURROGATE_PROB: float = 0.002
 # Default behaviour flags
 DEFAULT_ENABLE_RANDOM_TYPOS: bool = True
 
+# --- Person name formatting knobs --------------------------------
+
+# Probability that we output ONLY a first name
+PERSON_NAME_FIRST_ONLY_PROB: float = 0.05
+
+# Probability that we output ONLY a last name
+PERSON_NAME_LAST_ONLY_PROB: float = 0.05
+# Remaining probability (1 - above) is for full "first last"
+
+# Probability that the *first name* is rendered as initials
+# (only when a last name is present)
+PERSON_NAME_INITIALS_PROB: float = 0.25
+
+# Max number of initials (e.g. 3 -> J., J.S., J.S.T.)
+PERSON_NAME_MAX_INITIALS: int = 3
+
+# Capitalization probabilities
+PERSON_NAME_LOWERCASE_PROB: float = 0.05
+PERSON_NAME_UPPERCASE_PROB: float = 0.005
+
+# Probability for "Lastname, First" ordering (when both parts present)
+PERSON_NAME_REVERSE_ORDER_PROB: float = 0.01
+
+# Probability to reuse a previous person name in the same document
+PERSON_NAME_REUSE_PROB: float = 0.1
+
 
 # --- Header / disclaimer knobs ------------------------------------
 

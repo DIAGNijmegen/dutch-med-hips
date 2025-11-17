@@ -22,6 +22,7 @@ from .defaults import (
     DEFAULT_ENABLE_HEADER,
     DEFAULT_ENABLE_RANDOM_TYPOS,
     DEFAULT_HEADER_TEMPLATE,
+    PERSON_NAME_REUSE_PROB,
     TYPO_IN_SURROGATE_PROB,
 )
 from .surrogates import DEFAULT_GENERATORS, seed_surrogates
@@ -320,10 +321,11 @@ class HideInPlainSight:
             seed_surrogates(effective_seed)
 
         per_type_counts: Dict[str, int] = {}
+        per_type_surrogates: Dict[str, List[str]] = {}  # for reuse within the document
         mapping: List[Dict[str, object]] = []
 
         def _replacement(match: re.Match) -> str:
-            group_name = match.lastgroup
+            group_name = match.lastgroup  # <-- use match, not re.match
             cfg = self._group_to_config[group_name]
             phi_type = cfg.phi_type
 
@@ -332,10 +334,25 @@ class HideInPlainSight:
                 # Limit reached: leave original text unchanged.
                 return match.group(0)
 
-            surrogate = cfg.generator(match)
+            # Per-document surrogate cache (for reuse)
+            cache = per_type_surrogates.setdefault(phi_type, [])
+            reused = False
+
+            if (
+                phi_type == PHIType.PERSON_NAME
+                and cache
+                and random.random() < PERSON_NAME_REUSE_PROB
+            ):
+                surrogate = random.choice(cache)
+                reused = True
+            else:
+                surrogate = cfg.generator(match)
+                cache.append(surrogate)
+                reused = False
+
             per_type_counts[phi_type] = count + 1
 
-            # Maybe introduce a typo, depending on config and probability
+            # Maybe introduce a typo
             surrogate, typo_applied = _maybe_add_typo(
                 surrogate,
                 enabled=self._enable_random_typos,
@@ -352,6 +369,7 @@ class HideInPlainSight:
                         "start": match.start(),
                         "end": match.end(),
                         "typo_applied": typo_applied,
+                        "reused_surrogate": reused,
                     }
                 )
 
