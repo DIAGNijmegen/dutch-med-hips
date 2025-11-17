@@ -1,76 +1,82 @@
-# src/dutch_med_hips/surrogates.py
-
 """
-Default surrogate generators for PHI types.
+Default surrogate generators for PHI types, using Faker.
 
 All generators take a `re.Match` object and return a surrogate string.
 """
 
-import random
 import re
 from typing import Callable, Dict
 
+from faker import Faker
+
 from .constants import PHIType
+
+# Single Faker instance for the whole module (Dutch locale)
+_fake = Faker("nl_NL")
+
+
+def seed_surrogates(seed: int) -> None:
+    """
+    Seed the Faker instance used by the surrogate generators.
+    """
+    _fake.seed_instance(seed)
+
 
 # --- People ------------------------------------------------------
 
 
 def generate_fake_person_name(match: re.Match) -> str:
-    """Generate a fake Dutch-ish person name."""
-    first_names = ["Alice", "Bob", "Carol", "David", "Eva", "Frank"]
-    last_names = ["Janssen", "De Vries", "Bakker", "Visser", "Smit", "Mulder"]
-    return f"{random.choice(first_names)} {random.choice(last_names)}"
+    """Generate a fake (Dutch) person name."""
+    return _fake.name()
 
 
 def generate_fake_person_initials(match: re.Match) -> str:
     """Generate fake initials like 'A.B.'."""
-    letters = [chr(random.randint(ord("A"), ord("Z"))) for _ in range(2)]
-    return ".".join(letters) + "."
+    # Faker doesn't have initials directly, so we improvise.
+    initials = [
+        _fake.random_uppercase_letter(),
+        _fake.random_uppercase_letter(),
+    ]
+    return ".".join(initials) + "."
 
 
-# --- Dates / times / numbers -------------------------------------
+# --- Dates / times / age -----------------------------------------
 
 
 def generate_fake_date(match: re.Match) -> str:
-    """Generate a simple fake date in YYYY-MM-DD."""
-    years = [2019, 2020, 2021, 2022, 2023]
-    months = list(range(1, 13))
-    days = list(range(1, 28))
-    return f"{random.choice(years):04d}-{random.choice(months):02d}-{random.choice(days):02d}"
+    """Generate a fake date in ISO format (YYYY-MM-DD)."""
+    # date() already returns an ISO date string.
+    return _fake.date()
 
 
 def generate_fake_time(match: re.Match) -> str:
-    """Generate a simple fake time in HH:MM."""
-    hour = random.randint(0, 23)
-    minute = random.randint(0, 59)
-    return f"{hour:02d}:{minute:02d}"
+    """Generate a fake time in HH:MM format."""
+    return _fake.time(pattern="%H:%M")
 
 
 def generate_fake_age(match: re.Match) -> str:
-    """Generate a fake age (bounded to something reasonable)."""
-    return str(random.randint(0, 100))
+    """Generate a fake age."""
+    return str(_fake.random_int(min=0, max=100))
 
 
 # --- Contact / location ------------------------------------------
 
 
 def generate_fake_phone(match: re.Match) -> str:
-    """Generate a fake Dutch mobile phone number."""
-    return f"+31-6-{random.randint(10000000, 99999999)}"
+    """Generate a fake phone number (locale-aware for nl_NL)."""
+    return _fake.phone_number()
 
 
 def generate_fake_address(match: re.Match) -> str:
-    """Generate a simple fake address."""
-    streets = ["Hoofdstraat", "Kerklaan", "Dorpsstraat", "Stationsweg"]
-    numbers = random.randint(1, 200)
-    cities = ["Amsterdam", "Rotterdam", "Utrecht", "Den Haag"]
-    return f"{random.choice(streets)} {numbers}, {random.choice(cities)}"
+    """Generate a fake address (single-line)."""
+    # Faker's address includes newlines; we normalize to a single line.
+    addr = _fake.address().replace("\n", ", ")
+    return addr
 
 
 def generate_fake_location(match: re.Match) -> str:
     """Generate a fake city/location name."""
-    locations = ["Amsterdam", "Rotterdam", "Utrecht", "Groningen", "Maastricht"]
-    return random.choice(locations)
+    return _fake.city()
 
 
 # --- IDs / numbers -----------------------------------------------
@@ -78,17 +84,20 @@ def generate_fake_location(match: re.Match) -> str:
 
 def generate_fake_patient_id(match: re.Match) -> str:
     """Generate a fake patient identifier."""
-    return f"PAT-{random.randint(100000, 999999)}"
+    # PAT-123456
+    return _fake.bothify(text="PAT-######")
 
 
 def generate_fake_z_number(match: re.Match) -> str:
     """Generate a fake Z-number."""
-    return f"Z-{random.randint(1000000, 9999999)}"
+    # Z-1234567
+    return _fake.bothify(text="Z-#######")
 
 
 def generate_fake_document_id(match: re.Match) -> str:
     """Generate a fake document/rapport ID."""
-    return f"DOC-{random.randint(100000, 999999)}"
+    # DOC-123456
+    return _fake.bothify(text="DOC-######")
 
 
 def generate_fake_document_sub_id(match: re.Match) -> str:
@@ -99,17 +108,21 @@ def generate_fake_document_sub_id(match: re.Match) -> str:
     group(1) is the subtype.
     """
     subtype = match.group(1) if match.lastindex and match.lastindex >= 1 else "X"
-    return f"RAPPORT-{subtype}-NUMMER-{random.randint(1000, 9999)}"
+    # e.g. RAPPORT-T-NUMMER-1234
+    number_part = _fake.random_int(min=1000, max=9999)
+    return f"RAPPORT-{subtype}-NUMMER-{number_part}"
 
 
 def generate_fake_phi_number(match: re.Match) -> str:
     """Generate a generic fake PHI number."""
-    return f"PHI-{random.randint(100000, 999999)}"
+    # PHI-123456
+    return _fake.bothify(text="PHI-######")
 
 
 def generate_fake_accreditation_number(match: re.Match) -> str:
     """Generate a fake accreditation number."""
-    return f"ACC-{random.randint(100000, 999999)}"
+    # ACC-123456
+    return _fake.bothify(text="ACC-######")
 
 
 # --- Other text fields -------------------------------------------
@@ -117,23 +130,22 @@ def generate_fake_accreditation_number(match: re.Match) -> str:
 
 def generate_fake_hospital_name(match: re.Match) -> str:
     """Generate a fake hospital name."""
-    names = [
-        "St. Antonius Ziekenhuis",
-        "Academisch Medisch Centrum",
-        "Rijnland Kliniek",
-        "Noorderlicht Ziekenhuis",
-    ]
-    return random.choice(names)
+    # Use a company name and append something hospital-ish.
+    base = _fake.company()
+    suffixes = [" Ziekenhuis", " Medisch Centrum", " Kliniek"]
+    return base + _fake.random_element(suffixes)
 
 
 def generate_fake_study_name(match: re.Match) -> str:
     """Generate a fake study / trial name."""
-    prefixes = ["STUDY", "TRIAL", "PROJECT"]
-    suffix = random.randint(100, 999)
-    return f"{random.choice(prefixes)}-{suffix}"
+    # STUDY-ABC-123
+    prefix = _fake.random_element(["STUDY", "TRIAL", "PROJECT"])
+    code = _fake.bothify(text="???-###").upper()
+    return f"{prefix}-{code}"
 
 
 # --- Mapping from PHI type -> generator --------------------------
+
 
 DEFAULT_GENERATORS: Dict[str, Callable[[re.Match], str]] = {
     PHIType.PERSON_NAME: generate_fake_person_name,
