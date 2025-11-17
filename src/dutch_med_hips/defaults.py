@@ -38,6 +38,64 @@ PERSON_NAME_REVERSE_ORDER_PROB: float = 0.01
 # Probability to reuse a previous person name in the same document
 PERSON_NAME_REUSE_PROB: float = 0.1
 
+# --- Date formatting knobs ---------------------------------------
+
+# Step 1: with or without year
+DATE_WITH_YEAR_PROB: float = 0.75  # e.g. "03-02-2025", "3 feb 2025"
+DATE_WITHOUT_YEAR_PROB: float = 0.25  # e.g. "03-02", "3 feb"
+
+# Step 2: month as name or number
+DATE_MONTH_AS_NAME_PROB: float = 0.40  # e.g. "3 februari", "3 feb 2025"
+DATE_MONTH_AS_NUMBER_PROB: float = 0.60  # e.g. "03-02-2025", "3-2"
+
+# Step 3 (numeric): either D-M or DD-MM (both day & month same style)
+DATE_NUMERIC_PADDED_PROB: float = 0.60  # "03-02" vs "3-2"
+
+# Step 3 (named month): full vs abbreviated month name
+DATE_MONTH_NAME_ABBR_PROB: float = 0.40  # "feb" vs "februari"
+
+
+# --- Time formatting knobs ---------------------------------------
+
+# Relative frequencies for time formats:
+#  - "13:45"
+#  - "13:45 uur"
+#  - "13.45"
+#  - "13u45"
+#  - natural Dutch phrases ("kwart voor zes", "half vier", ...)
+TIME_FMT_HH_MM_PROB: float = 0.70  # "13:45"
+TIME_FMT_HH_DOT_MM_PROB: float = 0.1  # "13.45"
+TIME_FMT_HH_U_MM_PROB: float = 0.1  # "13u45"
+TIME_FMT_NATURAL_DUTCH_PROB: float = 0.1  # "kwart voor zes", "half vier"
+TIME_ADD_HOUR: float = 0.2  # add "uur" suffix
+
+
+# --- Age distribution knobs (Gaussian Mixture Model) --------------
+
+# Parameters of a 3-component 1D Gaussian Mixture for age, based on
+# hospital-like data. Age is in years.
+AGE_GMM_MEANS = [
+    71.22211106,
+    32.77964968,
+    56.70935326,
+]
+
+AGE_GMM_VARS = [
+    46.83038289,
+    135.5549187,
+    57.88157936,
+]
+
+AGE_GMM_WEIGHTS = [
+    0.46571202,
+    0.15135840,
+    0.38292958,
+]
+
+# Hard bounds for ages (inclusive); used for truncating/rejecting samples.
+AGE_MIN: int = 0
+AGE_MAX: int = 105
+
 
 # --- Header / disclaimer knobs ------------------------------------
 

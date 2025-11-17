@@ -4,14 +4,24 @@ Default surrogate generators for PHI types, using Faker.
 All generators take a `re.Match` object and return a surrogate string.
 """
 
+import math
 import random
 import re
-from typing import Callable, Dict
+from typing import Callable, Dict, List, Tuple
 
 from faker import Faker
 
 from .constants import PHIType
 from .defaults import (
+    AGE_GMM_MEANS,
+    AGE_GMM_VARS,
+    AGE_GMM_WEIGHTS,
+    AGE_MAX,
+    AGE_MIN,
+    DATE_MONTH_AS_NAME_PROB,
+    DATE_MONTH_NAME_ABBR_PROB,
+    DATE_NUMERIC_PADDED_PROB,
+    DATE_WITH_YEAR_PROB,
     PERSON_NAME_FIRST_ONLY_PROB,
     PERSON_NAME_INITIALS_PROB,
     PERSON_NAME_LAST_ONLY_PROB,
@@ -19,10 +29,63 @@ from .defaults import (
     PERSON_NAME_MAX_INITIALS,
     PERSON_NAME_REVERSE_ORDER_PROB,
     PERSON_NAME_UPPERCASE_PROB,
+    TIME_ADD_HOUR,
+    TIME_FMT_HH_DOT_MM_PROB,
+    TIME_FMT_HH_MM_PROB,
+    TIME_FMT_HH_U_MM_PROB,
+    TIME_FMT_NATURAL_DUTCH_PROB,
 )
+
+_DUTCH_MONTHS_FULL = [
+    "januari",
+    "februari",
+    "maart",
+    "april",
+    "mei",
+    "juni",
+    "juli",
+    "augustus",
+    "september",
+    "oktober",
+    "november",
+    "december",
+]
+
+_DUTCH_MONTHS_ABBR = [
+    "jan",
+    "feb",
+    "mrt",
+    "apr",
+    "mei",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "okt",
+    "nov",
+    "dec",
+]
+
+_DUTCH_HOUR_WORDS = [
+    "twaalf",
+    "één",
+    "twee",
+    "drie",
+    "vier",
+    "vijf",
+    "zes",
+    "zeven",
+    "acht",
+    "negen",
+    "tien",
+    "elf",
+]
+
 
 # Single Faker instance for the whole module (Dutch locale)
 _fake = Faker("nl_NL")
+
+# -- Seeder ------------------------------------------------------
 
 
 def seed_surrogates(seed: int) -> None:
@@ -30,6 +93,31 @@ def seed_surrogates(seed: int) -> None:
     Seed the Faker instance used by the surrogate generators.
     """
     _fake.seed_instance(seed)
+
+
+# --- Helper functions ---------------------------------------
+
+
+def _choose_weighted_index(weights: List[float]) -> int:
+    """
+    Return an index 0..len(weights)-1 chosen according to the given weights.
+    """
+    total = sum(weights)
+    if total <= 0:
+        # fallback: uniform
+        return random.randrange(len(weights))
+
+    r = random.random() * total
+    acc = 0.0
+    for i, w in enumerate(weights):
+        acc += w
+        if r <= acc:
+            return i
+    return len(weights) - 1
+
+
+def _chance(p: float) -> bool:
+    return random.random() < p
 
 
 # --- People ------------------------------------------------------
@@ -133,19 +221,160 @@ def generate_fake_person_initials(match: re.Match) -> str:
 
 
 def generate_fake_date(match: re.Match) -> str:
-    """Generate a fake date in ISO format (YYYY-MM-DD)."""
-    # date() already returns an ISO date string.
-    return _fake.date()
+    """
+    Generate a fake date using a 3-step scheme:
+
+    1) pick with or without year
+    2) pick month representation: name vs numeric
+    3) pick exact format:
+       - numeric: D-M or DD-MM (± year), never mixed padding
+       - name: full vs abbreviated month (± year)
+    """
+    # Use a date in roughly the last 5 years
+    d = _fake.date_between(start_date="-5y", end_date="today")
+    year = d.year
+    month = d.month
+    day = d.day
+
+    # Step 1: with or without year
+    with_year = _chance(DATE_WITH_YEAR_PROB)
+
+    # Step 2: month as name or number
+    month_as_name = _chance(DATE_MONTH_AS_NAME_PROB)
+
+    if month_as_name:
+        # Named month
+        use_abbr = _chance(DATE_MONTH_NAME_ABBR_PROB)
+        month_str = (
+            _DUTCH_MONTHS_ABBR[month - 1] if use_abbr else _DUTCH_MONTHS_FULL[month - 1]
+        )
+        # Always non-padded day here
+        if with_year:
+            # "3 februari 2025" / "3 feb 2025"
+            return f"{day} {month_str} {year:04d}"
+        else:
+            # "3 februari" / "3 feb"
+            return f"{day} {month_str}"
+    else:
+        # Numeric month: either D-M or DD-MM (both parts same style)
+        padded = _chance(DATE_NUMERIC_PADDED_PROB)
+        if padded:
+            day_str = f"{day:02d}"
+            month_str = f"{month:02d}"
+        else:
+            day_str = str(day)
+            month_str = str(month)
+
+        if with_year:
+            # "03-02-2025" or "3-2-2025"
+            return f"{day_str}-{month_str}-{year:04d}"
+        else:
+            # "03-02" or "3-2"
+            return f"{day_str}-{month_str}"
+
+
+def _natural_dutch_time() -> str:
+    """
+    Generate a simple natural-language Dutch time phrase, e.g.:
+    - "kwart voor zes"
+    - "kwart over drie"
+    - "half vier"
+    """
+    # Use 1–11 as base hour; we'll map 0 -> "twaalf"
+    base_hour = random.randint(0, 11)  # 0..11 -> 12,1,..11
+    hour_word = _DUTCH_HOUR_WORDS[base_hour]
+
+    # "half vier" in Dutch means 3:30 (halfway to 4), so we need next hour word too
+    next_hour_word = _DUTCH_HOUR_WORDS[(base_hour + 1) % 12]
+
+    kind = random.choice(["kwart_voor", "kwart_over", "half", "uur"])
+
+    if kind == "kwart_voor":
+        return f"kwart voor {next_hour_word}"
+    elif kind == "kwart_over":
+        return f"kwart over {hour_word}"
+    elif kind == "half":
+        return f"half {next_hour_word}"
+    else:  # "uur"
+        return f"{hour_word} uur"
 
 
 def generate_fake_time(match: re.Match) -> str:
-    """Generate a fake time in HH:MM format."""
-    return _fake.time(pattern="%H:%M")
+    """
+    Generate a fake time in Dutch style.
+
+    Formats:
+    - "13:45"
+    - "13:45 uur"
+    - "13.45"
+    - "13u45"
+    - natural Dutch ("kwart voor zes", "half vier", ...)
+    """
+    # Base numeric time
+    hour = random.randint(0, 23)
+    minute = random.randint(0, 59)
+
+    idx = _choose_weighted_index(
+        [
+            TIME_FMT_HH_MM_PROB,
+            TIME_FMT_HH_DOT_MM_PROB,
+            TIME_FMT_HH_U_MM_PROB,
+            TIME_FMT_NATURAL_DUTCH_PROB,
+        ]
+    )
+
+    add_hour = _chance(TIME_ADD_HOUR)
+    if add_hour:
+        uur = " uur"
+    else:
+        uur = ""
+
+    if idx == 0:
+        return f"{hour:02d}:{minute:02d}{uur}"
+    elif idx == 1:
+        return f"{hour:02d}.{minute:02d}{uur}"
+    elif idx == 2:
+        # Belgian/Dutch style "12u23"
+        return f"{hour}u{minute:02d}"
+    else:
+        # Natural phrase like "kwart voor zes"
+        return _natural_dutch_time()
 
 
 def generate_fake_age(match: re.Match) -> str:
-    """Generate a fake age."""
-    return str(_fake.random_int(min=0, max=100))
+    """
+    Generate a fake age (years) using a 1D Gaussian Mixture Model defined in
+    AGE_GMM_MEANS, AGE_GMM_VARS, AGE_GMM_WEIGHTS.
+
+    We:
+    - choose a component according to AGE_GMM_WEIGHTS
+    - sample from N(mean, var) for that component
+    - enforce integer age, truncated to [AGE_MIN, AGE_MAX]
+      via simple rejection (with a fallback clamp)
+    """
+    if not (AGE_GMM_MEANS and AGE_GMM_VARS and AGE_GMM_WEIGHTS):
+        # Fallback if misconfigured
+        return str(random.randint(AGE_MIN, AGE_MAX))
+
+    # Choose mixture component
+    k = _choose_weighted_index(AGE_GMM_WEIGHTS)
+
+    mean = AGE_GMM_MEANS[k]
+    var = AGE_GMM_VARS[k]
+    sigma = math.sqrt(var) if var > 0 else 1.0
+
+    # Rejection sampling to stay within [AGE_MIN, AGE_MAX]
+    for _ in range(10):
+        sample = random.gauss(mean, sigma)
+        age = int(round(sample))
+        if AGE_MIN <= age <= AGE_MAX:
+            return str(age)
+
+    # Fallback: clamp a final sample
+    sample = random.gauss(mean, sigma)
+    age = int(round(sample))
+    age = max(AGE_MIN, min(AGE_MAX, age))
+    return str(age)
 
 
 # --- Contact / location ------------------------------------------
