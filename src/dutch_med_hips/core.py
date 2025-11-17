@@ -194,7 +194,7 @@ class HideInPlainSight:
         if seed is not None:
             random.seed(seed)
 
-    def anonymize(
+    def run(
         self,
         text: str,
         keep_mapping: bool = True,
