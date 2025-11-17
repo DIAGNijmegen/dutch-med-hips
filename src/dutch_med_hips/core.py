@@ -12,12 +12,18 @@ import hashlib
 import random
 import re
 from dataclasses import dataclass
+from importlib.metadata import PackageNotFoundError, version
 from typing import Callable, Dict, List, Optional
 
 import typo
 
-from .chances import DEFAULT_ENABLE_RANDOM_TYPOS, TYPO_IN_SURROGATE_PROB
 from .constants import DEFAULT_PATTERNS, PHIType
+from .defaults import (
+    DEFAULT_ENABLE_HEADER,
+    DEFAULT_ENABLE_RANDOM_TYPOS,
+    DEFAULT_HEADER_TEMPLATE,
+    TYPO_IN_SURROGATE_PROB,
+)
 from .surrogates import DEFAULT_GENERATORS, seed_surrogates
 
 
@@ -45,6 +51,14 @@ class PatternConfig:
     pattern: str
     generator: Callable[[re.Match], str]
     max_per_document: Optional[int] = None
+
+
+def _get_package_version() -> str:
+    """Return installed version of dutch-med-hips, or 'unknown'."""
+    try:
+        return version("dutch-med-hips")
+    except PackageNotFoundError:
+        return "unknown"
 
 
 def _seed_from_text(text: str) -> int:
@@ -203,6 +217,15 @@ class HideInPlainSight:
     - Else if `use_document_hash_seed` is True, a seed is derived
       from the document text.
     - Else: no seeding is performed (fully random).
+
+    Noise behaviour:
+    - If `enable_random_typos` is True, each surrogate has a small
+      chance (TYPO_IN_SURROGATE_PROB) of receiving a single typo.
+
+    Header behaviour:
+    - If `enable_header` is True, `header_text` is prepended to the
+      anonymized text. By default, this is a disclaimer about
+      dutch-med-hips anonymization.
     """
 
     def __init__(
@@ -212,6 +235,8 @@ class HideInPlainSight:
         default_seed: Optional[int] = None,
         use_document_hash_seed: bool = True,
         enable_random_typos: bool = DEFAULT_ENABLE_RANDOM_TYPOS,
+        enable_header: bool = DEFAULT_ENABLE_HEADER,
+        header_text: Optional[str] = None,
         custom_patterns_per_type: Optional[Dict[str, List[str]]] = None,
         max_per_document: Optional[Dict[str, int]] = None,
     ):
@@ -226,6 +251,14 @@ class HideInPlainSight:
         self._default_seed = default_seed
         self._use_document_hash_seed = use_document_hash_seed
         self._enable_random_typos = enable_random_typos
+
+        # header settings
+        self._enable_header = enable_header
+        if header_text is not None:
+            self._header_text = header_text
+        else:
+            pkg_version = _get_package_version()
+            self._header_text = DEFAULT_HEADER_TEMPLATE.format(version=pkg_version)
 
         # Defensive: ensure no identical pattern string is used for different PHI types.
         pattern_owner: Dict[str, str] = {}
@@ -325,6 +358,19 @@ class HideInPlainSight:
             return surrogate
 
         anonymized_text = self._combined_pattern.sub(_replacement, text)
+
+        # Optionally prepend header disclaimer
+        if self._enable_header and self._header_text:
+            header = self._header_text
+            offset = len(header)
+
+            # Adjust mapping positions so they still refer to the final string
+            if keep_mapping:
+                for entry in mapping:
+                    entry["start"] += offset
+                    entry["end"] += offset
+
+            anonymized_text = header + anonymized_text
 
         return {
             "text": anonymized_text,
