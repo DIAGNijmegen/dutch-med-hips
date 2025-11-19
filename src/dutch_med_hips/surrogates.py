@@ -487,12 +487,6 @@ def _generate_from_template(template: str) -> str:
     for ch in template:
         if ch == "#":
             chars.append(random.choice(string.digits))
-        elif ch == "A":
-            chars.append(random.choice(string.ascii_uppercase))
-        elif ch == "a":
-            chars.append(random.choice(string.ascii_lowercase))
-        elif ch == "X":
-            chars.append(random.choice(string.ascii_uppercase + string.digits))
         else:
             chars.append(ch)
     return "".join(chars)
