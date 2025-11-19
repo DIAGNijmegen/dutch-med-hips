@@ -7,6 +7,7 @@ All generators take a `re.Match` object and return a surrogate string.
 import math
 import random
 import re
+import string
 from typing import Callable, Dict, List, Tuple
 
 from faker import Faker
@@ -16,6 +17,8 @@ from .locale import (
     DUTCH_HOUR_WORDS,
     DUTCH_MONTHS_ABBR,
     DUTCH_MONTHS_FULL,
+    HOSPITAL_CITY_POOL,
+    HOSPITAL_NAME_POOL,
 )
 from .schema import PHIType
 from .settings import (
@@ -28,6 +31,9 @@ from .settings import (
     DATE_MONTH_NAME_ABBR_PROB,
     DATE_NUMERIC_PADDED_PROB,
     DATE_WITH_YEAR_PROB,
+    HOSPITAL_NAME_CITY_ONLY_PROB,
+    ID_TEMPLATE_DEFAULT,
+    ID_TEMPLATES_BY_TAG,
     PERSON_NAME_FIRST_ONLY_PROB,
     PERSON_NAME_INITIALS_PROB,
     PERSON_NAME_LAST_ONLY_PROB,
@@ -38,6 +44,7 @@ from .settings import (
     PHONE_TYPE_LANDLINE_PROB,
     PHONE_TYPE_MOBILE_PROB,
     PHONE_TYPE_SEIN_PROB,
+    STUDY_NAME_POOL,
     TIME_ADD_HOUR,
     TIME_FMT_HH_DOT_MM_PROB,
     TIME_FMT_HH_MM_PROB,
@@ -109,6 +116,47 @@ def _first_name_to_initials(first_name: str, extra_count: int) -> str:
     return "".join(initials)
 
 
+TUSSENVOEGSELS = {"van", "de", "der", "den", "van de", "van der", "van den"}
+
+
+def _full_name_to_compact_initials(full_name: str) -> str:
+    """
+    Convert a full Dutch name into compact initials without dots, e.g.:
+
+    - "Jan Steen" -> "JS"
+    - "Bram van Ginneken" -> "BvG"
+    - "Anna de Jong" -> "AdJ"
+
+    Logic:
+    - Split on whitespace.
+    - Take the first character of each token that starts with a letter.
+    - For typical Dutch tussenvoegsels (van, de, der, den) we use lowercase,
+      all other parts uppercase.
+    """
+    tokens = full_name.strip().split()
+    initials = []
+
+    for idx, token in enumerate(tokens):
+        if not token:
+            continue
+        # Normalize the word for tussenvoegsel detection
+        base = token.lower().strip(",.")
+        if not base:
+            continue
+
+        first_char = base[0]
+        if not first_char.isalpha():
+            continue
+
+        # Tussenvoegsels (van, de, der, den) as lowercase, everything else uppercase
+        if base in {"van", "de", "der", "den"} and idx > 0:
+            initials.append(first_char.lower())
+        else:
+            initials.append(first_char.upper())
+
+    return "".join(initials)
+
+
 def generate_fake_person_name(match: re.Match) -> str:
     """
     Generate a fake person name with:
@@ -171,13 +219,14 @@ def generate_fake_person_name(match: re.Match) -> str:
 
 
 def generate_fake_person_initials(match: re.Match) -> str:
-    """Generate fake initials like 'A.B.'."""
-    # Faker doesn't have initials directly, so we improvise.
-    initials = [
-        _fake.random_uppercase_letter(),
-        _fake.random_uppercase_letter(),
-    ]
-    return ".".join(initials) + "."
+    """
+    Generate fake initials based on a full Faker name, e.g.:
+
+    - "Jan Steen" -> "JS"
+    - "Bram van Ginneken" -> "BvG"
+    """
+    full_name = f"{_fake.first_name()} {_fake.last_name()}"
+    return _full_name_to_compact_initials(full_name)
 
 
 # --- Dates / times / age -----------------------------------------
@@ -423,66 +472,158 @@ def generate_fake_location(match: re.Match) -> str:
 # --- IDs / numbers -----------------------------------------------
 
 
-def generate_fake_patient_id(match: re.Match) -> str:
-    """Generate a fake patient identifier."""
-    # PAT-123456
-    return _fake.bothify(text="PAT-######")
-
-
-def generate_fake_z_number(match: re.Match) -> str:
-    """Generate a fake Z-number."""
-    # Z-1234567
-    return _fake.bothify(text="Z-#######")
-
-
-def generate_fake_document_id(match: re.Match) -> str:
-    """Generate a fake document/rapport ID."""
-    # DOC-123456
-    return _fake.bothify(text="DOC-######")
-
-
-def generate_fake_document_sub_id(match: re.Match) -> str:
+def _generate_from_template(template: str) -> str:
     """
-    Generate a fake rapport sub-ID, preserving the subtype T/R/C/DPA/RPA.
+    Generate a random string from a tiny ID template language:
 
-    Pattern: <RAPPORT[_-]ID\.(T|R|C|DPA|RPA)[_-]NUMMER>
-    group(1) is the subtype.
+      # -> digit 0–9
+      A -> uppercase letter
+      a -> lowercase letter
+      X -> uppercase letter or digit
+
+      Any other char is literal.
     """
-    subtype = match.group(1) if match.lastindex and match.lastindex >= 1 else "X"
-    # e.g. RAPPORT-T-NUMMER-1234
-    number_part = _fake.random_int(min=1000, max=9999)
-    return f"RAPPORT-{subtype}-NUMMER-{number_part}"
+    chars = []
+    for ch in template:
+        if ch == "#":
+            chars.append(random.choice(string.digits))
+        elif ch == "A":
+            chars.append(random.choice(string.ascii_uppercase))
+        elif ch == "a":
+            chars.append(random.choice(string.ascii_lowercase))
+        elif ch == "X":
+            chars.append(random.choice(string.ascii_uppercase + string.digits))
+        else:
+            chars.append(ch)
+    return "".join(chars)
 
 
-def generate_fake_phi_number(match: re.Match) -> str:
-    """Generate a generic fake PHI number."""
-    # PHI-123456
-    return _fake.bothify(text="PHI-######")
+def generate_id_from_tag(match: re.Match) -> str:
+    """
+    Generic ID generator that looks at the matched *tag* and chooses an ID
+    template from settings.ID_TEMPLATES_BY_TAG.
+
+    Example:
+      "<Z-NUMMER>" -> "Z######" -> "Z123456"
+    """
+    tag = match.group(0)  # the literal text that matched, e.g. "<Z-NUMMER>"
+    template = ID_TEMPLATES_BY_TAG.get(tag, ID_TEMPLATE_DEFAULT)
+    if isinstance(template, (list, tuple)):
+        template = random.choice(template)
+    return _generate_from_template(template)
 
 
 def generate_fake_accreditation_number(match: re.Match) -> str:
-    """Generate a fake accreditation number."""
-    # ACC-123456
-    return _fake.bothify(text="ACC-######")
+    """
+    Generate a fake accreditation number in the form 'M123'.
+    Always 'M' + 3 digits.
+    """
+    return f"M{random.randint(0, 999):03d}"
+
+
+def generate_fake_bsn(match: re.Match) -> str:
+    """
+    Generate a fake BSN-like number using Faker's ssn(), normalized to digits.
+
+    For nl_NL, Faker.ssn() yields a Dutch-style citizen service number.
+    We strip any non-digits just to be safe and ensure it's 9 digits if possible.
+    """
+    digits = _fake.ssn()
+
+    # If Faker ever returns something not 9 digits, we pad/trim.
+    if len(digits) < 9:
+        digits = digits.ljust(9, "0")
+    elif len(digits) > 9:
+        digits = digits[:9]
+
+    return digits
+
+
+def generate_fake_iban(match: re.Match) -> str:
+    """
+    Generate a fake Dutch IBAN using Faker, with realistic formatting.
+
+    Examples:
+      - "NL91ABNA0417164300"
+      - "NL91 ABNA 0417 1643 00"
+    """
+    raw = _fake.iban()
+
+    # Normalize to "compact" form first (no spaces)
+    compact = raw.replace(" ", "")
+
+    # Randomly choose formatting style
+    style = random.choice(["compact", "spaced"])
+
+    if style == "compact":
+        return compact
+
+    # grouped as "NL91 ABNA 0417 1643 00"
+    groups = [compact[i : i + 4] for i in range(0, len(compact), 4)]
+    return " ".join(groups)
 
 
 # --- Other text fields -------------------------------------------
 
 
 def generate_fake_hospital_name(match: re.Match) -> str:
-    """Generate a fake hospital name."""
-    # Use a company name and append something hospital-ish.
-    base = _fake.company()
-    suffixes = [" Ziekenhuis", " Medisch Centrum", " Kliniek"]
-    return base + _fake.random_element(suffixes)
+    """
+    Generate a fake hospital mention that can be:
+      - a hospital name or abbreviation (ADRZ, LUMC, Radboudumc)
+      - OR just a location ("Amsterdam") that implicitly refers to the hospital
+    """
+    if not HOSPITAL_NAME_POOL:
+        return _fake.company()
+
+    idx = random.randrange(len(HOSPITAL_NAME_POOL))
+
+    name_variants = HOSPITAL_NAME_POOL[idx] or []
+    city_variants = HOSPITAL_CITY_POOL[idx] if idx < len(HOSPITAL_CITY_POOL) else []
+    city_variants = city_variants or []
+
+    # If both are empty (shouldn't happen), fall back
+    if not name_variants and not city_variants:
+        return _fake.company()
+
+    # Chance to use location-only instead of hospital name
+    # e.g. "overgeplaatst naar Amsterdam" instead of "overgeplaatst naar AMC"
+    use_city = bool(city_variants) and random.random() < HOSPITAL_NAME_CITY_ONLY_PROB
+
+    if use_city:
+        return random.choice(city_variants)
+
+    # Fall back to names/abbrevs
+    if name_variants:
+        return random.choice(name_variants)
+
+    # If we somehow have cities but no names
+    return random.choice(city_variants)
 
 
 def generate_fake_study_name(match: re.Match) -> str:
-    """Generate a fake study / trial name."""
-    # STUDY-ABC-123
-    prefix = _fake.random_element(["STUDY", "TRIAL", "PROJECT"])
-    code = _fake.bothify(text="???-###").upper()
-    return f"{prefix}-{code}"
+    """
+    Generate a fake study name from a predefined pool.
+
+    Some entries in STUDY_NAME_POOL are lists, which represent
+    multiple textual variants of the same study; in that case
+    we pick one variant at random.
+
+    Examples:
+      - "LEMA"
+      - "Donan"
+      - "M-SPECT" / "mSPECT"
+      - "Alpe d'Huzes MRI" / "Alpe d' Huzes MRI" / "Alpe"
+      - "MR-PRIAS" / "MRPRIAS" / "PRIAS"
+    """
+    choice = random.choice(STUDY_NAME_POOL)
+
+    # If this pool entry has multiple variants, pick one
+    if isinstance(choice, (list, tuple)):
+        if not choice:
+            return ""
+        return random.choice(choice)
+
+    return choice
 
 
 # --- Mapping from PHI type -> generator --------------------------
@@ -495,14 +636,12 @@ DEFAULT_GENERATORS: Dict[str, Callable[[re.Match], str]] = {
     PHIType.TIME: generate_fake_time,
     PHIType.PHONE_NUMBER: generate_fake_phone,
     PHIType.ADDRESS: generate_fake_address,
-    PHIType.PATIENT_ID: generate_fake_patient_id,
-    PHIType.Z_NUMBER: generate_fake_z_number,
     PHIType.LOCATION: generate_fake_location,
-    PHIType.DOCUMENT_ID: generate_fake_document_id,
-    PHIType.DOCUMENT_SUB_ID: generate_fake_document_sub_id,
-    PHIType.PHI_NUMBER: generate_fake_phi_number,
+    PHIType.GENERIC_ID: generate_id_from_tag,
     PHIType.AGE: generate_fake_age,
     PHIType.HOSPITAL_NAME: generate_fake_hospital_name,
     PHIType.ACCREDITATION_NUMBER: generate_fake_accreditation_number,
     PHIType.STUDY_NAME: generate_fake_study_name,
+    PHIType.BSN: generate_fake_bsn,
+    PHIType.IBAN: generate_fake_iban,
 }

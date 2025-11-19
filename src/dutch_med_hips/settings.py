@@ -18,7 +18,7 @@ DEFAULT_ENABLE_RANDOM_TYPOS: bool = True
 PERSON_NAME_FIRST_ONLY_PROB: float = 0.05
 
 # Probability that we output ONLY a last name
-PERSON_NAME_LAST_ONLY_PROB: float = 0.05
+PERSON_NAME_LAST_ONLY_PROB: float = 0.6
 # Remaining probability (1 - above) is for full "first last"
 
 # Probability that the *first name* is rendered as initials
@@ -106,6 +106,98 @@ AGE_MAX: int = 105
 PHONE_TYPE_MOBILE_PROB: float = 0.50  # e.g. "06-12345678"
 PHONE_TYPE_LANDLINE_PROB: float = 0.35  # e.g. "020-5669111"
 PHONE_TYPE_SEIN_PROB: float = 0.15  # e.g. "59319", "2000"
+
+# --- Hospital name formatting knobs -------------------------------
+
+# Probability to use only the city name instead of full hospital name
+HOSPITAL_NAME_CITY_ONLY_PROB: float = 0.3
+
+# --- Tag-based ID templates ---------------------------------------
+
+# Map *tag text* (as it appears in the text) to ID templates.
+# Users can override this dict in their own code.
+ID_TEMPLATES_BY_TAG = {
+    # Z-numbers
+    "<Z_NUMMER>": "Z######",
+    "<Z-NUMBER>": "Z######",
+    "<ZNUMMER>": "Z######",
+    "<ZNUMBER>": "Z######",
+    "<Z-NUMMER>": "Z######",
+    "<Z-NUMBER>": "Z######",
+    # Patient IDs
+    "<PATIENT_ID>": "#######",
+    "<PATIENTID>": "#######",
+    "<PATIENTNUMMER>": "#######",
+    # Generic PHI numbers
+    "<PHI_NUMMER>": "######",
+    "<PHI_NUMBER>": "######",
+    "<PHINUMMER>": "######",
+    "<PHINUMBER>": "######",
+    "<PHI-NUMMER>": "######",
+    "<PHI-NUMBER>": "######",
+    # Document IDs
+    "<RAPPORT-ID.T-NUMMER>": ["T######", "T ######", "T-######"],
+    "<RAPPORT_ID.T_NUMMER>": ["T######", "T ######", "T-######"],
+    "<RAPPORT-ID.R-NUMMER>": ["R######", "R ######", "R-######"],
+    "<RAPPORT_ID.R_NUMMER>": ["R######", "R ######", "R-######"],
+    "<RAPPORT-ID.C-NUMMER>": ["C######", "C ######", "C-######"],
+    "<RAPPORT_ID.C_NUMMER>": ["C######", "C ######", "C-######"],
+    "<RAPPORT-ID.DPA-NUMMER>": ["DPA######", "DPA ######", "DPA-######"],
+    "<RAPPORT_ID.DPA_NUMMER>": ["DPA######", "DPA ######", "DPA-######"],
+    "<RAPPORT-ID.RPA-NUMMER>": ["RPA######", "RPA ######", "RPA-######"],
+    "<RAPPORT_ID.RPA_NUMMER>": ["RPA######", "RPA ######", "RPA-######"],
+}
+
+# Fallback template if a tag is not in ID_TEMPLATES_BY_TAG but is handled
+# by the generic ID generator.
+ID_TEMPLATE_DEFAULT = "########"
+
+
+# --- Study name pool ----------------------------------------------
+
+STUDY_NAME_POOL = [
+    "LEMA",
+    "Donan",
+    ["M-SPECT", "mSPECT"],
+    "CAELC",
+    "PINNACLE",
+    "M18ICR",
+    "4M",
+    ["Alpe d'Huzes MRI", "Alpe d' Huzes MRI", "Alpe"],
+    "N21SPL",
+    "M21MUP",
+    "M13PSN",
+    "B18NCI",
+    "CFMPB 293",
+    "N18WGS - 2",
+    "IRBm19-124",
+    "DARANA",
+    "M19OTE-1",
+    "N14DAR",
+    "PROMPT",
+    "TULIP",
+    "N18CLI",
+    "BIA",
+    ["MR-PRIAS", "MRPRIAS", "PRIAS"],
+    "CFMPB484",
+    "CLIPPS",
+    "CFMPB283",
+    "N13PSN",
+    "N12IGP",
+    "M11TOO",
+    "M20FRM",
+    "TOOKAD",
+    "colopec",
+    "DC vacc",
+    "MDV-3800",
+    "Keynote-199",
+    "HOVON",
+    "G250",
+    "CAIRO",
+    "M14CDP-1",
+    "Luctas",
+    "TARZAN",
+]
 
 
 # --- Header / disclaimer knobs ------------------------------------

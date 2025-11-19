@@ -8,16 +8,14 @@ class PHIType:
     TIME = "time"
     PHONE_NUMBER = "phone_number"
     ADDRESS = "address"
-    PATIENT_ID = "patient_id"
-    Z_NUMBER = "z_number"
     LOCATION = "location"
-    DOCUMENT_ID = "document_id"
-    DOCUMENT_SUB_ID = "document_sub_id"
-    PHI_NUMBER = "phi_number"
     AGE = "age"
     HOSPITAL_NAME = "hospital_name"
     ACCREDITATION_NUMBER = "accreditation_number"
     STUDY_NAME = "study_name"
+    BSN = "bsn"
+    IBAN = "iban"
+    GENERIC_ID = "generic_id"
 
 
 # "Smart" regex patterns per PHI type
@@ -42,33 +40,9 @@ DEFAULT_PATTERNS: Dict[str, List[str]] = {
     PHIType.ADDRESS: [
         r"<(?:ADRES|ADDRESS)>",
     ],
-    # <PATIENT_ID>, <PATIENTID>, <PATIENTNUMMER>
-    PHIType.PATIENT_ID: [
-        r"<PATIENT(?:_ID|ID|NUMMER)>",
-    ],
-    # <Z_NUMMER>, <Z_NUMBER>, <ZNUMMER>, <ZNUMBER>, <Z-NUMMER>, <Z-NUMBER>
-    # Z, optional - or _, then NUMMER or NUMBER
-    PHIType.Z_NUMBER: [
-        r"<Z[-_]?(?:NUMMER|NUMBER)>",
-    ],
     # <LOCATIE>, <LOCATION>, <PLAATS>, <PLACE>
     PHIType.LOCATION: [
         r"<(?:LOCATIE|LOCATION|PLAATS|PLACE)>",
-    ],
-    # <DOCUMENT_ID>, <DOCUMENTID>, <RAPPORT_ID>, <RAPPORTID>
-    # DOCUMENT or RAPPORT, optional - or _, then ID
-    PHIType.DOCUMENT_ID: [
-        r"<(?:DOCUMENT|RAPPORT)[-_]?ID>",
-    ],
-    # <RAPPORT[_-]ID.(T|R|C|DPA|RPA)[_-]NUMMER>
-    # Keep the capturing group so generators can use the subtype.
-    PHIType.DOCUMENT_SUB_ID: [
-        r"<RAPPORT[_-]ID\.(T|R|C|DPA|RPA)[_-]NUMMER>",
-    ],
-    # <PHI_NUMMER>, <PHI_NUMBER>, <PHINUMMER>, <PHINUMBER>, <PHI-NUMMER>, <PHI-NUMBER>
-    # PHI, optional - or _, then NUMMER or NUMBER
-    PHIType.PHI_NUMBER: [
-        r"<PHI[-_]?(?:NUMMER|NUMBER)>",
     ],
     # <LEEFTIJD>, <AGE>
     PHIType.AGE: [
@@ -90,5 +64,26 @@ DEFAULT_PATTERNS: Dict[str, List[str]] = {
     # <STUDIENAAM>, <STUDIE_NAAM>, <STUDIE-NAAM>
     PHIType.STUDY_NAME: [
         r"<(?:STUDY[-_]?NAME|STUDIE[-_]?NAAM)>",
+    ],
+    PHIType.BSN: [
+        r"<BSN>",
+        r"<BSNNUMMER>",
+        r"<BSNNUMBER>",
+        r"<BSN-NUMMER>",
+        r"<BSN-NUMBER>",
+    ],
+    PHIType.IBAN: [
+        r"<IBAN>",
+        r"<IBANNUMMER>",
+        r"<IBANNUMBER>",
+        r"<IBAN-NUMMER>",
+        r"<IBAN-NUMBER>",
+    ],
+    PHIType.GENERIC_ID: [
+        r"<PATIENT(?:_ID|ID|NUMMER)>",
+        r"<Z[-_]?(?:NUMMER|NUMBER)>",
+        r"<RAPPORT[_-]ID\.(T|R|C|DPA|RPA)[_-]NUMMER>",
+        r"<PHI[-_]?(?:NUMMER|NUMBER)>",
+        r"<(?:DOCUMENT|RAPPORT)[-_]?ID>",
     ],
 }
