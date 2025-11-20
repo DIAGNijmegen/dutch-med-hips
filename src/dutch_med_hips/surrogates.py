@@ -8,6 +8,7 @@ import math
 import random
 import re
 import string
+from datetime import date, datetime, timedelta
 from typing import Callable, Dict, List, Tuple
 
 from faker import Faker
@@ -27,10 +28,13 @@ from .settings import (
     AGE_GMM_WEIGHTS,
     AGE_MAX,
     AGE_MIN,
+    DATE_EARLIEST,
+    DATE_LATEST,
     DATE_MONTH_AS_NAME_PROB,
     DATE_MONTH_NAME_ABBR_PROB,
     DATE_NUMERIC_PADDED_PROB,
     DATE_WITH_YEAR_PROB,
+    DATE_YEAR_FULL_PROB,
     HOSPITAL_NAME_CITY_ONLY_PROB,
     ID_TEMPLATE_DEFAULT,
     ID_TEMPLATES_BY_TAG,
@@ -232,6 +236,55 @@ def generate_fake_person_initials(match: re.Match) -> str:
 # --- Dates / times / age -----------------------------------------
 
 
+def parse_date_string(s: str) -> date | str:
+    """
+    Parse user input into something usable by faker.date_between:
+    - absolute dates -> datetime.date
+    - 'today'/'now'/'yesterday'/'tomorrow' -> concrete dates
+    - faker-style relative offsets ('-30d', '+2y', etc.) -> passed through as string
+    - empty/None -> None
+    """
+
+    POSSIBLE_FORMATS = [
+        "%d-%m-%Y",  # 1-1-2024 / 01-01-2024
+        "%Y-%m-%d",  # 2024-01-01
+        "%d/%m/%Y",  # 1/1/2024
+    ]
+
+    RELATIVE_PATTERN = re.compile(r"[+-]\d+[dmy]$", re.IGNORECASE)
+
+    if s is None:
+        return None
+
+    s = s.strip()
+    if not s:
+        return None
+
+    lower = s.lower()
+
+    # Special keywords -> concrete dates
+    if lower in {"today", "now"}:
+        return date.today()
+    if lower == "yesterday":
+        return date.today() - timedelta(days=1)
+    if lower == "tomorrow":
+        return date.today() + timedelta(days=1)
+
+    # Faker-style relative strings: '-30d', '+2y', '+10m', etc.
+    if RELATIVE_PATTERN.fullmatch(lower):
+        # let Faker handle these natively
+        return lower
+
+    # Try absolute date formats
+    for fmt in POSSIBLE_FORMATS:
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+
+    raise ValueError(f"Invalid date format: {s!r}")
+
+
 def generate_fake_date(match: re.Match) -> str:
     """
     Generate a fake date using a 3-step scheme:
@@ -242,14 +295,23 @@ def generate_fake_date(match: re.Match) -> str:
        - numeric: D-M or DD-MM (± year), never mixed padding
        - name: full vs abbreviated month (± year)
     """
-    # Use a date in roughly the last 5 years
-    d = _fake.date_between(start_date="-5y", end_date="today")
+    # Use a date between DATE_EARLIEST and DATE_LATEST
+    start_date = parse_date_string(DATE_EARLIEST)
+    end_date = parse_date_string(DATE_LATEST)
+    d = _fake.date_between(start_date=start_date, end_date=end_date)
     year = d.year
     month = d.month
     day = d.day
 
     # Step 1: with or without year
     with_year = _chance(DATE_WITH_YEAR_PROB)
+    if with_year:
+        # Decide year format
+        use_full_year = _chance(DATE_YEAR_FULL_PROB)
+        if use_full_year:
+            year_str = f"{year:04d}"
+        else:
+            year_str = f"{year % 100:02d}"
 
     # Step 2: month as name or number
     month_as_name = _chance(DATE_MONTH_AS_NAME_PROB)
@@ -263,7 +325,7 @@ def generate_fake_date(match: re.Match) -> str:
         # Always non-padded day here
         if with_year:
             # "3 februari 2025" / "3 feb 2025"
-            return f"{day} {month_str} {year:04d}"
+            return f"{day} {month_str} {year_str}"
         else:
             # "3 februari" / "3 feb"
             return f"{day} {month_str}"
@@ -279,7 +341,7 @@ def generate_fake_date(match: re.Match) -> str:
 
         if with_year:
             # "03-02-2025" or "3-2-2025"
-            return f"{day_str}-{month_str}-{year:04d}"
+            return f"{day_str}-{month_str}-{year_str}"
         else:
             # "03-02" or "3-2"
             return f"{day_str}-{month_str}"

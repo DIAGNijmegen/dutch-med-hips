@@ -13,6 +13,34 @@ It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realisti
 
 ---
 
+## Installation
+
+```bash
+pip install dutch-med-hips
+```
+
+---
+
+## Quickstart
+
+```python
+from dutch_med_hips import HideInPlainSight
+
+text = """
+Patiënt <PERSOON> werd opgenomen in <HOSPITAL_NAME> op <DATUM>.
+Z-nummer: <Z-NUMMER>, BSN: <BSN>, Email: <EMAIL>.
+Rapport ID: <RAPPORT_ID.T_NUMMER>.
+""" 
+
+hips = HideInPlainSight()
+result = hips.run(text)
+
+print(result["text"])
+print(result["mapping"])  # Shows original -> surrogate mapping
+```
+
+---
+
 ## Features
 
 ### 🔐 PHI Surrogates
@@ -24,7 +52,7 @@ It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realisti
   - Variants: first-only, last-only, full, initials (`J. Jansen`, `J.S. Jansen`)
   - Randomized casing (`jan jansen`, `JAN JANSEN`, `Jansen, Jan`)
 - **Person initials**
-  - Derived from full fake names: `Jan Steen` → `JS`, `Bram van Ginneken` → `BvG`
+  - Derived from full fake names: `Jan Steen` → `JS`, `Vincent van Gogh` → `VvG`
 - **Age**
   - Sampled from a hospital-like Gaussian mixture model (more 40–85 year olds)
 
@@ -35,9 +63,9 @@ It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realisti
   - Template mini-language (`#` = digit, etc.)
 - **Document IDs & sub-IDs**
   - Main report IDs from templates
-  - Sub-IDs like `<RAPPORT_ID.T_NUMMER>` → `T123456`, `RPA654321`
+  - Sub-IDs like `<RAPPORT_ID.T_NUMMER>` → `T123456`
 - **BSN**
-  - BSN-like numbers via Faker `ssn()` (normalized to 9 digits)
+  - Dutch BSN-like numbers via Faker `ssn()`
 - **IBAN**
   - Dutch IBANs via Faker, compact or grouped (`NL91ABNA0417164300`, `NL91 ABNA 0417 1643 00`)
 - **Accreditation number**
@@ -59,9 +87,10 @@ It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realisti
 
 - **Dates**
   - Dutch-style formats:
-    - Numeric: `D-M`, `DD-MM`, with/without year (`03-02-2025`, `3-2`)
+    - Numeric: `D-M`, `DD-MM`, with/without year (`03-02-2025`, `3-2-12`)
     - Named months: `3 februari`, `3 feb 2025`
   - Mix of year/no-year, numeric vs month-name
+  - Start/end date range configuration (e.g. last 10 years)
 - **Times**
   - 24h clock formats: `13:45`, `13:45 uur`, `13.45`, `13u45`
   - Natural Dutch phrases: `kwart voor zes`, `kwart over drie`, `half vier`
@@ -121,36 +150,6 @@ You can enable/disable this globally.
 
 Every anonymized document can automatically receive an anonymization disclaimer at the top.  
 You may customize or disable it.
-
----
-
-## Installation
-
-```bash
-pip install dutch-med-hips
-```
-
-(or your local workflow)
-
----
-
-## Quickstart
-
-```python
-from dutch_med_hips import HideInPlainSight
-
-text = """
-Patiënt <PERSOON> werd opgenomen in <HOSPITAL_NAME> op <DATUM>.
-Z-nummer: <Z-NUMMER>, BSN: <BSN>, Email: <EMAIL>.
-Rapport ID: <RAPPORT_ID.T_NUMMER>.
-""" 
-
-hips = HideInPlainSight(seed=42)
-result = hips.run(text)
-
-print(result["text"])
-print(result["mapping"])  # Shows original -> surrogate mapping
-```
 
 ---
 

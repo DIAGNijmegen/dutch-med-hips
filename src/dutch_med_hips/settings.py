@@ -40,13 +40,27 @@ PERSON_NAME_REUSE_PROB: float = 0.1
 
 # --- Date formatting knobs ---------------------------------------
 
+# Options for date range sampling consist of:
+#   "today" = today
+#   "-Ny" = N years ago from today
+#   "-Nm" = N months ago from today
+#   "-Nd" = N days ago from today
+#   "dd-mm-yyyy" = fixed date
+DATE_EARLIEST = "-10y"
+DATE_LATEST = "today"
+
 # Step 1: with or without year
-DATE_WITH_YEAR_PROB: float = 0.75  # e.g. "03-02-2025", "3 feb 2025"
-DATE_WITHOUT_YEAR_PROB: float = 0.25  # e.g. "03-02", "3 feb"
+DATE_WITH_YEAR_PROB: float = (
+    0.75  # e.g. "03-02-2025", "3 feb 2025 instead of "03-02", "3 feb"
+)
 
 # Step 2: month as name or number
-DATE_MONTH_AS_NAME_PROB: float = 0.40  # e.g. "3 februari", "3 feb 2025"
-DATE_MONTH_AS_NUMBER_PROB: float = 0.60  # e.g. "03-02-2025", "3-2"
+DATE_MONTH_AS_NAME_PROB: float = (
+    0.40  # e.g. "3 februari", "3 feb 2025 instead of "3-2", "03-02-2025"
+)
+
+# Step 2: year format (if year present)
+DATE_YEAR_FULL_PROB: float = 0.60  # e.g. "2025 instead of "25"
 
 # Step 3 (numeric): either D-M or DD-MM (both day & month same style)
 DATE_NUMERIC_PADDED_PROB: float = 0.60  # "03-02" vs "3-2"
