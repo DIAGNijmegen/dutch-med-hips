@@ -187,26 +187,87 @@ You may customize or disable it.
 
 ---
 
-## Customizing ID Formats
+## Defining Custom PHI Tags
 
-All ID formats are driven by simple templates:
+You can extend `dutch-med-hips` by adding your own PHI tags and replacement rules without modifying the library.
 
-| Symbol | Meaning |
-|--------|---------|
-| `#` | random digit 0–9 |
+---
 
-Any other character is inserted verbatim.
+### 1. Add your tag as a regex pattern
 
-Example:
+Each PHI category has a list of regex patterns (usually literal tags like `<MY_TAG>`).
 
 ```python
-settings.ID_TEMPLATES_BY_TAG["<PATIENT_ID>"] = "P######"      # Patient IDs like P123456
-settings.ID_TEMPLATES_BY_TAG["<Z-NUMMER>"] = "Z-###-###"      # Z-numbers like Z-123-456
+from dutch_med_hips import schema
+from dutch_med_hips.schema import PHIType
+
+# Add a new literal tag
+schema.DEFAULT_PATTERNS.setdefault(PHIType.GENERIC_ID, []).append(r"<CENTER_ID>")
+```
+
+Patterns can be flexible regexes:
+
+```python
+schema.DEFAULT_PATTERNS[PHIType.GENERIC_ID].append(r"<Z[-_]NUMMER>")
 ```
 
 ---
 
-## Hospital & Location Logic
+### 2. Assign a surrogate template
+
+For ID-like tags, define a template using `#` for digits:
+
+```python
+from dutch_med_hips import settings
+
+settings.ID_TEMPLATES_BY_TAG["<CENTER_ID>"] = "CEN-######"
+```
+
+Examples:
+
+- `"PT########"` → `PT12345678`
+- `"Z-###-###"` → `Z-123-456`
+- `"RPA ######"` → `RPA 482991`
+
+---
+
+### 3. (Optional) Custom generator function
+
+For advanced logic (e.g. based on regex capture groups):
+
+```python
+import re
+from dutch_med_hips import surrogates
+
+def generate_center(match: re.Match) -> str:
+    return "CENTER-" + "".join(str(i) for i in range(6))
+
+surrogates.DEFAULT_GENERATORS["center"] = generate_center
+schema.DEFAULT_PATTERNS["center"] = [r"<CENTER_SPECIAL>"]
+```
+
+All `<CENTER_SPECIAL>` tags will now use your custom generator.
+
+---
+
+### Quick Example
+
+```python
+schema.DEFAULT_PATTERNS[PHIType.GENERIC_ID].append(r"<MY_ID>")
+settings.ID_TEMPLATES_BY_TAG["<MY_ID>"] = "MY-######"
+
+from dutch_med_hips import HideInPlainSight
+hips = HideInPlainSight(seed=1)
+
+print(hips.run("Test <MY_ID>.")["text"])
+# -> "Test MY-123456."
+```
+
+That's all you need: **add a regex → assign a template or generator → done.**
+
+---
+
+### Hospital & Location Logic
 
 Hospital data lives in `locale.py` as lists of variants:
 
@@ -230,7 +291,7 @@ The surrogate system sometimes picks the **city** rather than the **hospital nam
 
 ---
 
-## Study Name Surrogates
+### Study Name Surrogates
 
 Also in `locale.py`, a curated list of Dutch/medical trials:
 
