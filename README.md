@@ -5,7 +5,7 @@ It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realisti
 
 `dutch-med-hips` uses:
 
-- **Faker** for Dutch-language surrogate generation  
+- [**Faker**](https://faker.readthedocs.io/en/master/) for Dutch-language surrogate generation  
 - **Configurable templates** for ID-like fields  
 - **Locale dictionaries** for hospitals, months, cities, study names  
 - **A combined regex engine** for fast and safe substitution  
@@ -17,20 +17,72 @@ It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realisti
 
 ### 🔐 PHI Surrogates
 
-Supports realistic surrogates for:
+#### 👤 People & Demographics
 
-- Person names (with initials, Dutch tussenvoegsels, formats, etc.)
-- Hospital names & abbreviations (based on full Dutch hospital list)
-- Cities & locations (sometimes used instead of hospital names)
-- Study names (medical trials, oncology studies, MRI protocols, etc.)
-- Dates (Dutch formats: `12 februari`, `12-02`, `4 mei`, etc.)
-- Times (`12:34`, `12u34`, textual like _“kwart voor zes”_)
-- Ages (Gaussian mixture model to mimic real hospital distributions)
-- Phone numbers (mobile, landlines, **SEIN** pager numbers)
-- Patient IDs, Z-numbers, PHI numbers, document IDs (template-driven)
-- BSN & IBAN (valid structure, via Faker)
-- URLs
-- Email addresses
+- **Person names**
+  - Dutch-style names (first/last), tussenvoegsels (`van`, `de`, …)
+  - Variants: first-only, last-only, full, initials (`J. Jansen`, `J.S. Jansen`)
+  - Randomized casing (`jan jansen`, `JAN JANSEN`, `Jansen, Jan`)
+- **Person initials**
+  - Derived from full fake names: `Jan Steen` → `JS`, `Bram van Ginneken` → `BvG`
+- **Age**
+  - Sampled from a hospital-like Gaussian mixture model (more 40–85 year olds)
+
+#### 🧾 Identifiers & Numbers
+
+- **Patient IDs / Z-numbers / generic PHI numbers**
+  - All driven by simple templates per tag (e.g. `<Z-NUMMER>` → `Z######`)
+  - Template mini-language (`#` = digit, etc.)
+- **Document IDs & sub-IDs**
+  - Main report IDs from templates
+  - Sub-IDs like `<RAPPORT_ID.T_NUMMER>` → `T123456`, `RPA654321`
+- **BSN**
+  - BSN-like numbers via Faker `ssn()` (normalized to 9 digits)
+- **IBAN**
+  - Dutch IBANs via Faker, compact or grouped (`NL91ABNA0417164300`, `NL91 ABNA 0417 1643 00`)
+- **Accreditation number**
+  - Always `M` + 3 digits (e.g. `M007`, `M123`)
+
+#### 🏥 Hospitals, Locations & Studies
+
+- **Hospital names**
+  - Realistic Dutch hospital pool with full names and abbreviations  
+    e.g. `Amsterdam UMC locatie AMC`, `AMC`, `Radboudumc`, `LUMC`, `ADRZ`
+  - Sometimes uses only the city as shorthand (e.g. `Amsterdam`, `Nijmegen`)
+- **Locations**
+  - Dutch cities and place names drawn from hospital/location data
+- **Study names**
+  - Curated list of real-looking study labels and variants  
+    e.g. `LEMA`, `Donan`, `M-SPECT`/`mSPECT`, `Alpe d'Huzes MRI`, `TULIP`, `PRIAS`
+
+#### 📅 Dates & Times
+
+- **Dates**
+  - Dutch-style formats:
+    - Numeric: `D-M`, `DD-MM`, with/without year (`03-02-2025`, `3-2`)
+    - Named months: `3 februari`, `3 feb 2025`
+  - Mix of year/no-year, numeric vs month-name
+- **Times**
+  - 24h clock formats: `13:45`, `13:45 uur`, `13.45`, `13u45`
+  - Natural Dutch phrases: `kwart voor zes`, `kwart over drie`, `half vier`
+
+#### 📞 Contact & Online
+
+- **Phone numbers**
+  - Dutch mobile numbers (`06-12345678`, `+31 6 12345678`)
+  - Landlines / hospital numbers (`020-5669111`, `088-…`)
+  - Internal SEIN/pager numbers (4–5 digit codes)
+- **Email addresses**
+  - Fake but valid emails via Faker (customizable domains)
+- **URLs**
+  - Fake but valid http(s) URLs via Faker (can be styled to look like portals/EPD endpoints)
+
+#### 🏠 Addresses & Misc
+
+- **Addresses**
+  - Dutch-style street + number + postcode + city via Faker (`nl_NL`)
+- **Other PHI**
+  - Any additional tag-based IDs or tokens configured via templates can be mapped to surrogates in the same way.
 
 ### 🔧 Flexible Configuration
 
@@ -46,15 +98,19 @@ settings.ENABLE_TYPOS = True
 
 ### 🧪 Deterministic Output
 
-Provide a seed or allow the system to hash the document to stabilize output:
+The system automatically hashes the document to generate a seed to stabilize output. This can be turned off, or you can provide your own fixed seed:
 
 ```python
 hips = HideInPlainSight(seed=123)
 ```
 
+!!! Note
+    Using a fixed seed means the **same input document** will always yield the **same output document** and **same surrogate mappings**.  
+    Different documents will still produce different outputs.
+
 ### ✏️ Optional Typo Injection
 
-Using the `typo` Python package, some surrogates can receive:
+Using the [`typo`](https://github.com/ranvijaykumar/typo) Python package, some surrogates can receive:
 
 - Adjacent-key typos
 - Insertions
@@ -104,16 +160,15 @@ All ID formats are driven by simple templates:
 
 | Symbol | Meaning |
 |--------|---------|
-| `#` | digit 0–9 |
-| `A` | uppercase letter |
-| `a` | lowercase letter |
-| `X` | letter or digit |
+| `#` | random digit 0–9 |
+
+Any other character is inserted verbatim.
 
 Example:
 
 ```python
-settings.ID_TEMPLATES_BY_TAG["<PATIENT_ID>"] = "PT-######"
-settings.ID_TEMPLATES_BY_TAG["<Z-NUMMER>"] = "Z-###-###"
+settings.ID_TEMPLATES_BY_TAG["<PATIENT_ID>"] = "P######"    # Patient IDs like P123456
+settings.ID_TEMPLATES_BY_TAG["<Z-NUMMER>"] = "Z-###-###"      # Z-numbers like Z-123-456
 ```
 
 ---
