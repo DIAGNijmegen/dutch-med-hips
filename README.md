@@ -23,6 +23,8 @@ pip install dutch-med-hips
 
 ## Quickstart
 
+Run via python:
+
 ```python
 from dutch_med_hips import HideInPlainSight
 
@@ -38,6 +40,25 @@ result = hips.run(text)
 print(result["text"])
 print(result["mapping"])  # Shows original -> surrogate mapping
 ```
+
+or via CLI:
+
+```bash
+dutch-med-hips [OPTIONS]
+```
+
+### Common Options
+
+| Option | Meaning |
+|--------|---------|
+| `-i, --input PATH` | Input file (UTF-8). Use `-` or omit to read from **stdin**. |
+| `-o, --output PATH` | Output file (UTF-8). Use `-` or omit to write to **stdout**. |
+| `--mapping-out PATH` | Write the JSON mapping (original → surrogate) to a file. |
+| `--seed N` | Use a fixed seed for deterministic surrogate generation. |
+| `--no-document-hash-seed` | Disable automatic seeding based on the document hash. |
+| `--no-header` | Disable the anonymization disclaimer header. |
+| `--disable-typos` | Disable random typo injection in surrogates. |
+| `-V, --version` | Show version information and exit. |
 
 ---
 
