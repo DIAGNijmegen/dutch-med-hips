@@ -189,33 +189,68 @@ You may customize or disable it.
 
 ## Defining Custom PHI Tags
 
-You can extend `dutch-med-hips` by adding your own PHI tags and replacement rules without modifying the library.
+`dutch-med-hips` allows users to extend PHI detection and surrogate generation without modifying the library.  
+Below are the **three most common customization patterns**, with clear examples:
+
+1. **Add a new regex to an existing PHI category** (easiest)  
+2. **Create a new ID-style tag with its own format** (advanced)  
+3. **Extend surrogate pools** (e.g. add a new study name)
 
 ---
 
-### 1. Add your tag as a regex pattern
+### 1️⃣ Adding a New Regex to Person Names (Simple Example)
 
-Each PHI category has a list of regex patterns (usually literal tags like `<MY_TAG>`).
+If your reports use additional person‑name markers such as `<NM>` or `<PERSOON_NAAM>`, you can plug them into the existing system.
+
+Just add them to the existing PHI type:
 
 ```python
 from dutch_med_hips import schema
 from dutch_med_hips.schema import PHIType
 
-# Add a new literal tag
-schema.DEFAULT_PATTERNS.setdefault(PHIType.GENERIC_ID, []).append(r"<CENTER_ID>")
+schema.DEFAULT_PATTERNS[PHIType.PERSON_NAME].extend([
+    r"<NM>",
+    r"<PERSOON_NAAM>",
+])
 ```
 
-Patterns can be flexible regexes:
+These new tags will:
+
+✔ Be recognized as person names  
+✔ Use the existing name surrogate logic  
+✔ Appear in the mapping as `phi_type="person_name"`  
+
+**Example:**
 
 ```python
-schema.DEFAULT_PATTERNS[PHIType.GENERIC_ID].append(r"<Z[-_]NUMMER>")
+text = "Patiënt <NM> en begeleider <PERSOON_NAAM> kwamen binnen."
+print(HideInPlainSight(seed=1).run(text)["text"])
 ```
 
 ---
 
-### 2. Assign a surrogate template
+### 2️⃣ Creating a New ID Tag with a Custom Format (Advanced)
 
-For ID-like tags, define a template using `#` for digits:
+Suppose your system uses `<CENTER_ID>` and you want outputs like:
+
+```bash
+CEN-123456
+```
+
+#### Step 1 — Add a detection pattern
+
+```python
+from dutch_med_hips import schema
+from dutch_med_hips.schema import PHIType
+
+schema.DEFAULT_PATTERNS.setdefault(PHIType.GENERIC_ID, []).append(
+    r"<CENTER_ID>"
+)
+```
+
+#### Step 2 — Assign a surrogate template
+
+Use the template mini‑language (`#` = digit):
 
 ```python
 from dutch_med_hips import settings
@@ -223,103 +258,92 @@ from dutch_med_hips import settings
 settings.ID_TEMPLATES_BY_TAG["<CENTER_ID>"] = "CEN-######"
 ```
 
-Examples:
-
-- `"PT########"` → `PT12345678`
-- `"Z-###-###"` → `Z-123-456`
-- `"RPA ######"` → `RPA 482991`
-
----
-
-### 3. (Optional) Custom generator function
-
-For advanced logic (e.g. based on regex capture groups):
+#### Step 3 — Use it
 
 ```python
-import re
-from dutch_med_hips import surrogates
-
-def generate_center(match: re.Match) -> str:
-    return "CENTER-" + "".join(str(i) for i in range(6))
-
-surrogates.DEFAULT_GENERATORS["center"] = generate_center
-schema.DEFAULT_PATTERNS["center"] = [r"<CENTER_SPECIAL>"]
-```
-
-All `<CENTER_SPECIAL>` tags will now use your custom generator.
-
----
-
-### Quick Example
-
-```python
-schema.DEFAULT_PATTERNS[PHIType.GENERIC_ID].append(r"<MY_ID>")
-settings.ID_TEMPLATES_BY_TAG["<MY_ID>"] = "MY-######"
-
 from dutch_med_hips import HideInPlainSight
-hips = HideInPlainSight(seed=1)
 
-print(hips.run("Test <MY_ID>.")["text"])
-# -> "Test MY-123456."
+text = "Centrum: <CENTER_ID>."
+print(HideInPlainSight(seed=42).run(text)["text"])
+# Centrum: CEN-123456.
 ```
-
-That's all you need: **add a regex → assign a template or generator → done.**
 
 ---
 
-### Hospital & Location Logic
+### 3️⃣ Adding New Items to Surrogate Pools (e.g., Study Names)
 
-Hospital data lives in `locale.py` as lists of variants:
-
-```python
-HOSPITAL_NAME_POOL = [
-    ["Amsterdam UMC locatie AMC", "AUMC-AMC", "AMC"],
-    ["Radboud UMC", "Radboudumc", "RUMC"],
-    ["LUMC"],
-    ...
-]
-
-HOSPITAL_CITY_POOL = [
-    ["Amsterdam", "Adam", "A'dam"],
-    ["Nijmegen"],
-    ["Leiden"],
-    ...
-]
-```
-
-The surrogate system sometimes picks the **city** rather than the **hospital name**, mirroring real report style.
-
----
-
-### Study Name Surrogates
-
-Also in `locale.py`, a curated list of Dutch/medical trials:
+Some surrogate categories use **pools**, such as the curated list of Dutch medical study names in `locale.py`:
 
 ```python
 STUDY_NAME_POOL = [
     "LEMA",
     "Donan",
     ["M-SPECT", "mSPECT"],
-    ["Alpe d'Huzes MRI", "Alpe"],
-    "TULIP",
-    "PRIAS",
     ...
 ]
 ```
 
----
-
-## Extending / Overriding Configuration
-
-Users can override ANY default value:
+To add your own study:
 
 ```python
 from dutch_med_hips import settings
 
-settings.STUDY_NAME_POOL.append("NEWSTUDY")
-settings.ENABLE_HEADER = False
-settings.PHONE_TYPE_SEIN_PROB = 0.20
+settings.STUDY_NAME_POOL.append("MY-NEW-STUDY")
 ```
+
+Or add multiple variants:
+
+```python
+settings.STUDY_NAME_POOL.append([
+    "CUSTOMTRIAL",
+    "Custom Trial",
+    "CT-Study"
+])
+```
+
+The generator will randomly pick one of the variants.
+
+#### Example
+
+```python
+text = "Onderzoek: <STUDY_NAME>."
+hips = HideInPlainSight(seed=123)
+print(hips.run(text)["text"])
+# Onderzoek: MY-NEW-STUDY.
+```
+
+---
+
+### Optional: Full Custom Generator
+
+For more complex surrogate rules, you can define your own PHI type and generator:
+
+```python
+import re
+from dutch_med_hips import schema, surrogates
+
+def generate_center(match: re.Match) -> str:
+    return "CENTER-" + "123456"
+
+schema.DEFAULT_PATTERNS["center"] = [r"<CENTER_SPECIAL>"]
+surrogates.DEFAULT_GENERATORS["center"] = generate_center
+```
+
+Now `<CENTER_SPECIAL>` maps through your custom function.
+
+---
+
+### Summary
+
+| Task | Best Method |
+|------|-------------|
+| Add a new tag to an existing PHI category | Add regex to `schema.DEFAULT_PATTERNS[...]` |
+| Create a new ID-like tag | Add regex + assign template via `settings.ID_TEMPLATES_BY_TAG` |
+| Add new study/hospital/name variants | Append to the appropriate pool in `settings` |
+| Create fully custom surrogate logic | Register generator in `surrogates.DEFAULT_GENERATORS` |
+
+Customizing `dutch-med-hips` is:  
+**Add regex → (optional) assign template or generator → done.**
 
 ---
 
