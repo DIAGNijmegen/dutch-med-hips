@@ -1,114 +1,197 @@
 # 🇳🇱 dutch-med-hips
 
-**dutch-med-hips** is a Python package for anonymizing Dutch medical reports using the *Hide-In-Plain-Sight* (HIPS) methodology. It replaces sensitive personal data with realistic surrogates while preserving the readability and overall structure of the text.
+A robust, highly configurable **PHI anonymization and surrogate generation** toolkit designed for **Dutch medical and radiology reports**.  
+It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realistic surrogate values such as names, ages, dates, hospitals, study names, IDs, BSNs, IBANs, phone numbers, URLs, emails, and more.
+
+`dutch-med-hips` uses:
+
+- **Faker** for Dutch-language surrogate generation  
+- **Configurable templates** for ID-like fields  
+- **Locale dictionaries** for hospitals, months, cities, study names  
+- **A combined regex engine** for fast and safe substitution  
+- **Document-level deterministic seeding** (optional)
 
 ---
 
-## 🚀 Features
+## Features
 
-* Replace personally identifiable information (PII) with synthetic, context-aware surrogates.
-* Supports replacement for names, dates, locations, hospitals, study names, phone numbers, IDs, and more.
-* Uses real-world statistical distributions (e.g. for age, character frequency) to generate natural-looking output.
-* Adds a disclaimer to the final anonymized report.
-* Configurable behavior via JSON weight configuration files.
+### 🔐 PHI Surrogates
 
----
+Supports realistic surrogates for:
 
-## 📦 Installation
+- Person names (with initials, Dutch tussenvoegsels, formats, etc.)
+- Hospital names & abbreviations (based on full Dutch hospital list)
+- Cities & locations (sometimes used instead of hospital names)
+- Study names (medical trials, oncology studies, MRI protocols, etc.)
+- Dates (Dutch formats: `12 februari`, `12-02`, `4 mei`, etc.)
+- Times (`12:34`, `12u34`, textual like _“kwart voor zes”_)
+- Ages (Gaussian mixture model to mimic real hospital distributions)
+- Phone numbers (mobile, landlines, **SEIN** pager numbers)
+- Patient IDs, Z-numbers, PHI numbers, document IDs (template-driven)
+- BSN & IBAN (valid structure, via Faker)
+- URLs
+- Email addresses
 
-Create a fresh conda environment:
+### 🔧 Flexible Configuration
 
-```bash
-conda create -n dutch-med-hips python=3.11
-conda activate dutch-med-hips
+All defaults live in `settings.py` and can be overridden at runtime:
+
+```python
+from dutch_med_hips import settings
+
+settings.ID_TEMPLATES_BY_TAG["<Z-NUMMER>"] = "Z-###-###"
+settings.PERSON_NAME_REUSE_PROB = 0.15
+settings.ENABLE_TYPOS = True
 ```
 
-Install the package via pip:
+### 🧪 Deterministic Output
+
+Provide a seed or allow the system to hash the document to stabilize output:
+
+```python
+hips = HideInPlainSight(seed=123)
+```
+
+### ✏️ Optional Typo Injection
+
+Using the `typo` Python package, some surrogates can receive:
+
+- Adjacent-key typos
+- Insertions
+- Deletions  
+You can enable/disable this globally.
+
+### ⚠️ Automatic Disclaimer Header
+
+Every anonymized document can automatically receive an anonymization disclaimer at the top.  
+You may customize or disable it.
+
+---
+
+## Installation
 
 ```bash
 pip install dutch-med-hips
 ```
 
-Or from source:
-
-```bash
-git clone https://github.com/DIAGNijmegen/dutch-med-hips.git
-cd dutch-med-hips
-pip install .
-```
+(or your local workflow)
 
 ---
 
-## 🛠️ Usage
-
-### CLI
-
-After installation, use the CLI to anonymize a report:
-
-```bash
-hips \
-  --input_file path/to/input_report.txt \
-  --output_file path/to/output_report.txt \
-  --seed 42
-```
-
-Arguments:
-
-* `--input_file`: Path to the file containing the original report.
-* `--output_file`: Path to write the anonymized report.
-* `--seed`: (Optional) Seed for reproducibility. Default is `42`.
-* `--ner_labels`: (Optional) List of NER labels for offset adjustment, currently disabled via CLI.
-
----
-
-### Python API
+## Quickstart
 
 ```python
-from dutch_med_hips.hips_functions import HideInPlainSight
+from dutch_med_hips import HideInPlainSight
 
-report = "<PERSOON> had a consultation on <DATUM> at <TIJD>."
-hips = HideInPlainSight()
-anonymized_report = hips.apply_hips(report)
-print(anonymized_report)
+text = """
+Patiënt <PERSOON> werd opgenomen in <HOSPITAL_NAME> op <DATUM>.
+Z-nummer: <Z-NUMMER>, BSN: <BSN>, Email: <EMAIL>.
+Rapport ID: <RAPPORT_ID.T_NUMMER>.
+""" 
+
+hips = HideInPlainSight(seed=42)
+result = hips.run(text)
+
+print(result["text"])
+print(result["mapping"])  # Shows original -> surrogate mapping
 ```
 
 ---
 
-## 📄 Supported Tags
+## Customizing ID Formats
 
-The following tags in the report will be replaced:
+All ID formats are driven by simple templates:
 
-| Tag                   | Replacement                           |
-| --------------------- | ------------------------------------- |
-| `<PERSOON>`           | Realistic person names                |
-| `<DATUM>`             | Randomized date                       |
-| `<TIJD>`              | Randomized time                       |
-| `<TELEFOONNUMMER>`    | Synthetic phone number                |
-| `<PATIENTNUMMER>`     | Synthetic patient ID                  |
-| `<ZNUMMER>`           | Synthetic Z-number                    |
-| `<PLAATS>`            | Dutch city                            |
-| `<RAPPORT-ID.*>`      | Custom report ID                      |
-| `<PHINUMMER>`         | Synthetic PHI number                  |
-| `<LEEFTIJD>`          | Realistic age (GMM-based)             |
-| `<PERSOONAFKORTING>`  | Name abbreviation                     |
-| `<ZIEKENHUIS>`        | Dutch hospital                        |
-| `<ACCREDATIE_NUMMER>` | Accreditation number                  |
-| `<STUDIE-NAAM>`       | Study name (optionally with UZR code) |
+| Symbol | Meaning |
+|--------|---------|
+| `#` | digit 0–9 |
+| `A` | uppercase letter |
+| `a` | lowercase letter |
+| `X` | letter or digit |
+
+Example:
+
+```python
+settings.ID_TEMPLATES_BY_TAG["<PATIENT_ID>"] = "PT-######"
+settings.ID_TEMPLATES_BY_TAG["<Z-NUMMER>"] = "Z-###-###"
+```
 
 ---
 
-## ⚙️ Configuration
+## Hospital & Location Logic
 
-The package loads a configuration files and multiple lookup lists from its `config/` directory.
-Modify these files to adjust behavior without changing the code.
-In particular, `config/config.json` contains weights for various replacement strategies. Adjust these to fit your dataset needs.
+Hospital data lives in `locale.py` as lists of variants:
+
+```python
+HOSPITAL_NAME_POOL = [
+    ["Amsterdam UMC locatie AMC", "AUMC-AMC", "AMC"],
+    ["Radboud UMC", "Radboudumc", "RUMC"],
+    ["LUMC"],
+    ...
+]
+
+HOSPITAL_CITY_POOL = [
+    ["Amsterdam", "Adam", "A'dam"],
+    ["Nijmegen"],
+    ["Leiden"],
+    ...
+]
+```
+
+The surrogate system sometimes picks the **city** rather than the **hospital name**, mirroring real report style.
 
 ---
 
-## 🤝 Contributing
+## Study Name Surrogates
 
-Want to help improve Dutch Med HIPS?
+Also in `locale.py`, a curated list of Dutch/medical trials:
 
-1. Fork the repository.
-2. Create your feature branch.
-3. Submit a pull request with tests if applicable.
+```python
+STUDY_NAME_POOL = [
+    "LEMA",
+    "Donan",
+    ["M-SPECT", "mSPECT"],
+    ["Alpe d'Huzes MRI", "Alpe"],
+    "TULIP",
+    "PRIAS",
+    ...
+]
+```
+
+---
+
+## Extending / Overriding Configuration
+
+Users can override ANY default value:
+
+```python
+from dutch_med_hips import settings
+
+settings.STUDY_NAME_POOL.append("NEWSTUDY")
+settings.ENABLE_HEADER = False
+settings.PHONE_TYPE_SEIN_PROB = 0.20
+```
+
+---
+
+## Mapping Output Structure
+
+`result = hips.run(text)` returns:
+
+```python
+{
+    "text": "anonymized text...",
+    "mapping": [
+        {
+            "original": "<PERSOON>",
+            "surrogate": "Jan Steen",
+            "phi_type": "person_name",
+            "start": 10,
+            "end": 18
+        },
+        ...
+    ]
+}
+```
+
+---
