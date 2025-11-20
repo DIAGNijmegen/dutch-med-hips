@@ -15,8 +15,18 @@ It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realisti
 
 ## Installation
 
+You can install `dutch-med-hips` via pip:
+
 ```bash
 pip install dutch-med-hips
+```
+
+or from source:
+
+```bash
+git clone https://github.com/DIAGNijmegen/dutch-med-hips.git
+cd dutch-med-hips
+pip install -e .
 ```
 
 ---
@@ -24,6 +34,8 @@ pip install dutch-med-hips
 ## Quickstart
 
 ### Python API
+
+Running HideInPlainSight in your Python code is straightforward:
 
 ```python
 from dutch_med_hips import HideInPlainSight
@@ -42,6 +54,8 @@ print(result["mapping"])  # Shows original -> surrogate mapping
 ```
 
 ### Command-Line Interface
+
+You can also use `dutch-med-hips` directly from the command line:
 
 ```bash
 dutch-med-hips [OPTIONS]
@@ -186,7 +200,7 @@ Any other character is inserted verbatim.
 Example:
 
 ```python
-settings.ID_TEMPLATES_BY_TAG["<PATIENT_ID>"] = "P######"    # Patient IDs like P123456
+settings.ID_TEMPLATES_BY_TAG["<PATIENT_ID>"] = "P######"      # Patient IDs like P123456
 settings.ID_TEMPLATES_BY_TAG["<Z-NUMMER>"] = "Z-###-###"      # Z-numbers like Z-123-456
 ```
 
