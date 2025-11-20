@@ -58,7 +58,6 @@ dutch-med-hips [OPTIONS]
 | `--no-document-hash-seed` | Disable automatic seeding based on the document hash. |
 | `--no-header` | Disable the anonymization disclaimer header. |
 | `--disable-typos` | Disable random typo injection in surrogates. |
-| `-V, --version` | Show version information and exit. |
 
 ---
 
