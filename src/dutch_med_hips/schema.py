@@ -16,6 +16,8 @@ class PHIType:
     BSN = "bsn"
     IBAN = "iban"
     GENERIC_ID = "generic_id"
+    EMAIL = "email"
+    URL = "url"
 
 
 # "Smart" regex patterns per PHI type
@@ -85,5 +87,17 @@ DEFAULT_PATTERNS: Dict[str, List[str]] = {
         r"<RAPPORT[_-]ID\.(T|R|C|DPA|RPA)[_-]NUMMER>",
         r"<PHI[-_]?(?:NUMMER|NUMBER)>",
         r"<(?:DOCUMENT|RAPPORT)[-_]?ID>",
+    ],
+    PHIType.EMAIL: [
+        r"<EMAIL>",
+        r"<EMAILADRES>",
+        r"<E[-_]?MAIL>",
+        r"<MAILADRES>",
+    ],
+    PHIType.URL: [
+        r"<URL>",
+        r"<LINK>",
+        r"<WEBSITE>",
+        r"<WEBADRES>",
     ],
 }

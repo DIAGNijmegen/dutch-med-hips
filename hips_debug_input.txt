@@ -362,3 +362,30 @@
 <IBAN>
 <IBAN>
 <IBAN>
+
+# EMAIL
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+<EMAIL>
+
+# URL
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>
+<URL>

@@ -620,6 +620,25 @@ def generate_fake_study_name(match: re.Match) -> str:
     return choice
 
 
+def generate_fake_email(match: re.Match) -> str:
+    """
+    Generate a fake email address.
+
+    Uses Faker's email, but you could later customize the pattern to
+    match your hospital style (e.g. initials + lastname).
+    """
+    return _fake.free_email()
+
+
+def generate_fake_url(match: re.Match) -> str:
+    """
+    Generate a fake URL.
+
+    Uses Faker's url(), which gives plausible http(s) URLs.
+    """
+    return _fake.uri()
+
+
 # --- Mapping from PHI type -> generator --------------------------
 
 
@@ -638,4 +657,6 @@ DEFAULT_GENERATORS: Dict[str, Callable[[re.Match], str]] = {
     PHIType.STUDY_NAME: generate_fake_study_name,
     PHIType.BSN: generate_fake_bsn,
     PHIType.IBAN: generate_fake_iban,
+    PHIType.EMAIL: generate_fake_email,
+    PHIType.URL: generate_fake_url,
 }
