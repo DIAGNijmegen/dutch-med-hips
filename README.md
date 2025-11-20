@@ -23,7 +23,7 @@ pip install dutch-med-hips
 
 ## Quickstart
 
-Run via python:
+### Python API
 
 ```python
 from dutch_med_hips import HideInPlainSight
@@ -41,13 +41,13 @@ print(result["text"])
 print(result["mapping"])  # Shows original -> surrogate mapping
 ```
 
-or via CLI:
+### Command-Line Interface
 
 ```bash
 dutch-med-hips [OPTIONS]
 ```
 
-### Common Options
+#### Common Options
 
 | Option | Meaning |
 |--------|---------|
