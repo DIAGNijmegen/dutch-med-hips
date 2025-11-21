@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "twine"]
+dev = ["pytest", "pytest-cov", "twine", "build"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
