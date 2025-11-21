@@ -77,3 +77,6 @@ Desktop.ini
 
 # Poetry
 poetry.lock
+
+# Test output
+test_artifacts/
