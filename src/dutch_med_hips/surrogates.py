@@ -488,12 +488,14 @@ def _fake_landline_number() -> str:
 
 def _fake_sein_number() -> str:
     """
-    Generate a hospital SEIN / pager number, usually 4 or 5 digits.
-    Examples in the wild: 2000, 59319, 55064, 5018, etc.
+    Generate a hospital SEIN / pager number, usually 4 or 5 digits. If 4 numbers they can start with a *.
+    Examples in the wild: 2000, 59319, 55064, *5018, etc.
     """
     length = 4 if random.random() < 0.7 else 5
     upper = 10**length - 1
     num = random.randint(0, upper)
+    if length == 4 and random.random() < 0.5:
+        return f"*{num:03d}"
     return f"{num:0{length}d}"
 
 
