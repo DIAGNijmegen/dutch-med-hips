@@ -164,7 +164,7 @@ settings.ENABLE_TYPOS = True
 The system automatically hashes the document to generate a seed to stabilize output. This can be turned off, or you can provide your own fixed seed:
 
 ```python
-hips = HideInPlainSight(seed=123)
+hips = HideInPlainSight(default_seed=123)
 ```
 
 !!! Note
@@ -224,7 +224,7 @@ These new tags will:
 
 ```python
 text = "Patiënt <NM> en begeleider <PERSOON_NAAM> kwamen binnen."
-print(HideInPlainSight(seed=1).run(text)["text"])
+print(HideInPlainSight(default_seed=1).run(text)["text"])
 ```
 
 ---
@@ -264,7 +264,7 @@ settings.ID_TEMPLATES_BY_TAG["<CENTER_ID>"] = "CEN-######"
 from dutch_med_hips import HideInPlainSight
 
 text = "Centrum: <CENTER_ID>."
-print(HideInPlainSight(seed=42).run(text)["text"])
+print(HideInPlainSight(default_seed=42).run(text)["text"])
 # Centrum: CEN-123456.
 ```
 
@@ -307,7 +307,7 @@ The generator will randomly pick one of the variants.
 
 ```python
 text = "Onderzoek: <STUDY_NAME>."
-hips = HideInPlainSight(seed=123)
+hips = HideInPlainSight(default_seed=123)
 print(hips.run(text)["text"])
 # Onderzoek: MY-NEW-STUDY.
 ```
