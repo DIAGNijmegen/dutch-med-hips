@@ -13,7 +13,7 @@ import random
 import re
 from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 import typo
 
@@ -292,6 +292,7 @@ class HideInPlainSight:
         text: str,
         keep_mapping: bool = True,
         seed: Optional[int] = None,
+        ner_labels: Optional[List[Tuple[int, int, str]]] = None,
     ) -> Dict[str, object]:
         """
         Replace all configured patterns in `text` with generated surrogates.
@@ -301,9 +302,35 @@ class HideInPlainSight:
         2. `self._default_seed` (constructor)
         3. hash of `text` if `self._use_document_hash_seed` is True
         4. no seeding (random)
+
+        Parameters
+        ----------
+        text:
+            The input text containing PHI tags to be replaced.
+        keep_mapping:
+            If True, return a mapping of original -> surrogate replacements.
+        seed:
+            Optional seed for deterministic surrogate generation.
+        ner_labels:
+            Optional list of NER labels as (start, end, label) tuples.
+            If provided, the returned dict will include 'updated_labels'
+            with positions adjusted to account for length changes from
+            surrogate substitutions.
+
+        Returns
+        -------
+        dict with keys:
+            - "text": the anonymized text
+            - "mapping": list of replacement details (if keep_mapping=True)
+            - "updated_labels": list of (start, end, label) with adjusted
+              positions (if ner_labels was provided)
         """
         if self._combined_pattern is None:
-            return {"text": text, "mapping": [] if keep_mapping else None}
+            return {
+                "text": text,
+                "mapping": [] if keep_mapping else None,
+                "updated_labels": list(ner_labels) if ner_labels else None,
+            }
 
         # --- decide effective seed ---
         if seed is not None:
@@ -324,15 +351,21 @@ class HideInPlainSight:
         per_type_surrogates: Dict[str, List[str]] = {}  # for reuse within the document
         mapping: List[Dict[str, object]] = []
 
-        def _replacement(match: re.Match) -> str:
-            group_name = match.lastgroup  # <-- use match, not re.match
+        # Collect all matches first so we can track position shifts
+        matches = list(self._combined_pattern.finditer(text))
+
+        # Process matches and collect replacement info
+        replacements: List[Tuple[int, int, str, str]] = []  # (start, end, original, surrogate)
+
+        for match in matches:
+            group_name = match.lastgroup
             cfg = self._group_to_config[group_name]
             phi_type = cfg.phi_type
 
             count = per_type_counts.get(phi_type, 0)
             if cfg.max_per_document is not None and count >= cfg.max_per_document:
                 # Limit reached: leave original text unchanged.
-                return match.group(0)
+                continue
 
             # Per-document surrogate cache (for reuse)
             cache = per_type_surrogates.setdefault(phi_type, [])
@@ -359,6 +392,8 @@ class HideInPlainSight:
                 probability=TYPO_IN_SURROGATE_PROB,
             )
 
+            replacements.append((match.start(), match.end(), match.group(0), surrogate))
+
             if keep_mapping:
                 mapping.append(
                     {
@@ -373,9 +408,56 @@ class HideInPlainSight:
                     }
                 )
 
-            return surrogate
+        # Build the anonymized text by applying replacements in reverse order
+        # (to preserve positions for earlier replacements)
+        anonymized_text = text
+        for start, end, original, surrogate in reversed(replacements):
+            anonymized_text = anonymized_text[:start] + surrogate + anonymized_text[end:]
 
-        anonymized_text = self._combined_pattern.sub(_replacement, text)
+        # Update NER labels if provided
+        updated_labels: Optional[List[Tuple[int, int, str]]] = None
+        if ner_labels is not None:
+            updated_labels = []
+            for label_start, label_end, label_text in ner_labels:
+                new_start = label_start
+                new_end = label_end
+
+                # Apply offset shifts from all replacements that affect this label
+                for repl_start, repl_end, original, surrogate in replacements:
+                    delta = len(surrogate) - len(original)
+
+                    if repl_end <= label_start:
+                        # Replacement is entirely before this label: shift both
+                        new_start += delta
+                        new_end += delta
+                    elif repl_start < label_end:
+                        # Replacement overlaps or is inside the label: adjust end
+                        new_end += delta
+
+                updated_labels.append((new_start, new_end, label_text))
+
+        # Update mapping positions to reflect final positions in anonymized text
+        if keep_mapping:
+            for entry in mapping:
+                orig_start = entry["start"]
+                orig_end = entry["end"]
+                new_start = orig_start
+                new_end = orig_end
+
+                # Apply offset shifts from earlier replacements
+                for repl_start, repl_end, original, surrogate in replacements:
+                    if repl_start >= orig_start:
+                        # This replacement is at or after our position, skip
+                        break
+                    delta = len(surrogate) - len(original)
+                    new_start += delta
+                    new_end += delta
+
+                # The end position should reflect the surrogate length
+                new_end = new_start + len(entry["surrogate"])
+
+                entry["start"] = new_start
+                entry["end"] = new_end
 
         # Optionally prepend header disclaimer
         if self._enable_header and self._header_text:
@@ -388,9 +470,17 @@ class HideInPlainSight:
                     entry["start"] += offset
                     entry["end"] += offset
 
+            # Adjust updated_labels positions
+            if updated_labels is not None:
+                updated_labels = [
+                    (start + offset, end + offset, label)
+                    for start, end, label in updated_labels
+                ]
+
             anonymized_text = header + anonymized_text
 
         return {
             "text": anonymized_text,
             "mapping": mapping if keep_mapping else None,
+            "updated_labels": updated_labels,
         }

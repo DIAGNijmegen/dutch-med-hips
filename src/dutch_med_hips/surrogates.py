@@ -703,6 +703,15 @@ def generate_fake_url(match: re.Match) -> str:
     return _fake.uri()
 
 
+def generate_fake_company_name(match: re.Match) -> str:
+    """
+    Generate a fake company name.
+
+    Uses Faker's company(), which gives plausible Dutch company names.
+    """
+    return _fake.company()
+
+
 # --- Mapping from PHI type -> generator --------------------------
 
 
@@ -723,4 +732,5 @@ DEFAULT_GENERATORS: Dict[str, Callable[[re.Match], str]] = {
     PHIType.IBAN: generate_fake_iban,
     PHIType.EMAIL: generate_fake_email,
     PHIType.URL: generate_fake_url,
+    PHIType.COMPANY_NAME: generate_fake_company_name,
 }

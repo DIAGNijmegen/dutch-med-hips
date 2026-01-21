@@ -114,8 +114,11 @@ dutch-med-hips [OPTIONS]
 - **Locations**
   - Dutch cities and place names drawn from hospital/location data
 - **Study names**
-  - Curated list of real-looking study labels and variants  
+  - Curated list of real-looking study labels and variants
     e.g. `LEMA`, `Donan`, `M-SPECT`/`mSPECT`, `Alpe d'Huzes MRI`, `TULIP`, `PRIAS`
+- **Company names**
+  - Dutch company names via Faker (`nl_NL`)
+    e.g. `Van der Berg BV`, `Jansen en Zonen`, `De Vries Holding`
 
 #### 📅 Dates & Times
 
@@ -164,7 +167,7 @@ settings.ENABLE_TYPOS = True
 The system automatically hashes the document to generate a seed to stabilize output. This can be turned off, or you can provide your own fixed seed:
 
 ```python
-hips = HideInPlainSight(seed=123)
+hips = HideInPlainSight(default_seed=123)
 ```
 
 !!! Note
@@ -347,6 +350,48 @@ Customizing `dutch-med-hips` is:
 
 ---
 
+## NER Label Position Tracking
+
+When working with NER (Named Entity Recognition) pipelines, you often have label positions that need to stay aligned after surrogate substitution. `dutch-med-hips` can automatically update these positions for you.
+
+### Usage
+
+Pass your NER labels as a list of `(start, end, label)` tuples:
+
+```python
+from dutch_med_hips import HideInPlainSight
+
+text = "Patient <PERSOON> geboren op <DATUM> in Amsterdam."
+ner_labels = [
+    (8, 17, "<PERSOON>"),   # Position of <PERSOON> tag
+    (29, 36, "<DATUM>"),    # Position of <DATUM> tag
+    (40, 49, "LOCATION"),   # Position of "Amsterdam" (non-PHI)
+]
+
+hips = HideInPlainSight(enable_header=False)
+result = hips.run(text, ner_labels=ner_labels)
+
+print(result["text"])
+# "Patient Jan de Vries geboren op 15-03-1985 in Amsterdam."
+
+print(result["updated_labels"])
+# [(8, 20, "<PERSOON>"), (32, 42, "<DATUM>"), (46, 55, "LOCATION")]
+```
+
+### How It Works
+
+- Labels **before** a replacement remain unchanged
+- Labels **after** a replacement are shifted by the length difference (surrogate length - original length)
+- Labels that **overlap** with a replacement have their end position adjusted
+- When the header is enabled, all label positions are shifted by the header length
+
+This is useful when you need to:
+- Preserve NER annotations through anonymization
+- Track entity positions for downstream processing
+- Maintain alignment between original and anonymized text annotations
+
+---
+
 ## Mapping Output Structure
 
 `result = hips.run(text)` returns:
@@ -363,7 +408,8 @@ Customizing `dutch-med-hips` is:
             "end": 18
         },
         ...
-    ]
+    ],
+    "updated_labels": [...]  # Only present if ner_labels was provided
 }
 ```
 
