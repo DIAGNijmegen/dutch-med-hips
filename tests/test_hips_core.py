@@ -228,3 +228,144 @@ def test_document_sub_id_pattern():
         # suffix should be (at least) digits
         pattern = re.escape(prefix) + r"[-\s]?\d{4,8}"
         assert re.fullmatch(pattern, surr)
+
+
+class TestNerLabelUpdates:
+    """Tests for NER label position tracking through surrogate substitution."""
+
+    def test_ner_labels_updated_with_longer_surrogate(self):
+        """When surrogate is longer than original tag, positions shift forward."""
+        text = "Patient <PERSOON> geboren op <DATUM>."
+        # <PERSOON> is at positions 8-17, <DATUM> is at positions 29-36
+        ner_labels = [
+            (8, 17, "<PERSOON>"),
+            (29, 36, "<DATUM>"),
+        ]
+
+        hips = HideInPlainSight(default_seed=42, enable_header=False)
+        result = hips.run(text, ner_labels=ner_labels)
+
+        updated_labels = result["updated_labels"]
+        anon_text = result["text"]
+
+        assert updated_labels is not None
+        assert len(updated_labels) == 2
+
+        # Verify the updated positions point to the correct text
+        for start, end, label in updated_labels:
+            # The span should exist within the text bounds
+            assert 0 <= start < end <= len(anon_text)
+            # Extract what's at that position
+            extracted = anon_text[start:end]
+            # It should match the surrogate from the mapping
+            mapping_entry = next(
+                m for m in result["mapping"] if m["original"] == label
+            )
+            assert extracted == mapping_entry["surrogate"]
+
+    def test_ner_labels_updated_with_shorter_surrogate(self):
+        """When surrogate is shorter than original tag, positions shift backward."""
+        # Use a tag that typically produces shorter output
+        text = "Leeftijd: <LEEFTIJD> jaar."
+        # <LEEFTIJD> at positions 10-20
+        ner_labels = [(10, 20, "<LEEFTIJD>")]
+
+        hips = HideInPlainSight(default_seed=42, enable_header=False)
+        result = hips.run(text, ner_labels=ner_labels)
+
+        updated_labels = result["updated_labels"]
+        anon_text = result["text"]
+
+        assert updated_labels is not None
+        assert len(updated_labels) == 1
+
+        start, end, label = updated_labels[0]
+        extracted = anon_text[start:end]
+        mapping_entry = next(m for m in result["mapping"] if m["original"] == label)
+        assert extracted == mapping_entry["surrogate"]
+
+    def test_ner_labels_with_multiple_replacements(self):
+        """Multiple replacements accumulate offset shifts correctly."""
+        text = "<PERSOON> en <PERSOON> op <DATUM>."
+        # First <PERSOON> at 0-9, second at 13-22, <DATUM> at 26-33
+        ner_labels = [
+            (0, 9, "<PERSOON>"),
+            (13, 22, "<PERSOON>"),
+            (26, 33, "<DATUM>"),
+        ]
+
+        hips = HideInPlainSight(default_seed=123, enable_header=False)
+        result = hips.run(text, ner_labels=ner_labels)
+
+        updated_labels = result["updated_labels"]
+        anon_text = result["text"]
+
+        assert updated_labels is not None
+        assert len(updated_labels) == 3
+
+        # Each label should point to the correct surrogate in the final text
+        for i, (start, end, label) in enumerate(updated_labels):
+            assert 0 <= start < end <= len(anon_text)
+            extracted = anon_text[start:end]
+            # Find corresponding mapping entry (by index since same tag appears multiple times)
+            mapping_entry = result["mapping"][i]
+            assert extracted == mapping_entry["surrogate"]
+
+    def test_ner_labels_none_returns_none(self):
+        """When ner_labels is not provided, updated_labels is None."""
+        text = "Patient <PERSOON>."
+        hips = HideInPlainSight(default_seed=42, enable_header=False)
+        result = hips.run(text)
+
+        assert result["updated_labels"] is None
+
+    def test_ner_labels_empty_list_returns_empty_list(self):
+        """When ner_labels is empty list, updated_labels is empty list."""
+        text = "Patient <PERSOON>."
+        hips = HideInPlainSight(default_seed=42, enable_header=False)
+        result = hips.run(text, ner_labels=[])
+
+        assert result["updated_labels"] == []
+
+    def test_ner_labels_with_header_includes_header_offset(self):
+        """When header is enabled, label positions include header offset."""
+        text = "Patient <PERSOON>."
+        ner_labels = [(8, 17, "<PERSOON>")]
+
+        hips = HideInPlainSight(default_seed=42, enable_header=True)
+        result = hips.run(text, ner_labels=ner_labels)
+
+        updated_labels = result["updated_labels"]
+        anon_text = result["text"]
+
+        assert updated_labels is not None
+        start, end, label = updated_labels[0]
+
+        # Position should account for header
+        assert start > 8  # Original position was 8, now shifted by header
+        extracted = anon_text[start:end]
+        mapping_entry = next(m for m in result["mapping"] if m["original"] == label)
+        assert extracted == mapping_entry["surrogate"]
+
+    def test_ner_labels_for_non_replaced_spans(self):
+        """Labels pointing to non-PHI text should shift correctly."""
+        text = "Hello <PERSOON> world."
+        # "Hello" at 0-5, "world" at 16-21 (after the tag)
+        ner_labels = [
+            (0, 5, "GREETING"),
+            (16, 21, "NOUN"),
+        ]
+
+        hips = HideInPlainSight(default_seed=42, enable_header=False)
+        result = hips.run(text, ner_labels=ner_labels)
+
+        updated_labels = result["updated_labels"]
+        anon_text = result["text"]
+
+        # First label (before replacement) should be unchanged
+        start1, end1, label1 = updated_labels[0]
+        assert anon_text[start1:end1] == "Hello"
+
+        # Second label (after replacement) should be shifted
+        start2, end2, label2 = updated_labels[1]
+        assert anon_text[start2:end2] == "world"

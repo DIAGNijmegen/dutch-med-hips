@@ -18,6 +18,7 @@ class PHIType:
     GENERIC_ID = "generic_id"
     EMAIL = "email"
     URL = "url"
+    COMPANY_NAME = "company_name"
 
 
 # "Smart" regex patterns per PHI type
@@ -99,5 +100,8 @@ DEFAULT_PATTERNS: Dict[str, List[str]] = {
         r"<LINK>",
         r"<WEBSITE>",
         r"<WEBADRES>",
+    ],
+    PHIType.COMPANY_NAME: [
+        r"<(?:COMPANY|BEDRIJF|BEDRIJFSNAAM|COMPANY_NAME)>",
     ],
 }
