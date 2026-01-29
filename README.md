@@ -1,3 +1,6 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18415297.svg)](https://doi.org/10.5281/zenodo.18415297)
+
+
 # 🇳🇱 dutch-med-hips
 
 A robust, highly configurable **PHI anonymization and surrogate generation** toolkit designed for **Dutch medical and radiology reports**.  
