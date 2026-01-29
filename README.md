@@ -1,7 +1,6 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18415297.svg)](https://doi.org/10.5281/zenodo.18415297)
-
-
 # 🇳🇱 dutch-med-hips
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18415297.svg)](https://doi.org/10.5281/zenodo.18415297)
 
 A robust, highly configurable **PHI anonymization and surrogate generation** toolkit designed for **Dutch medical and radiology reports**.  
 It replaces PHI tokens (e.g. `<PERSOON>`, `<Z-NUMMER>`, `<DATUM>`) with realistic surrogate values such as names, ages, dates, hospitals, study names, IDs, BSNs, IBANs, phone numbers, URLs, emails, and more.
