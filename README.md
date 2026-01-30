@@ -416,3 +416,22 @@ This is useful when you need to:
 ```
 
 ---
+
+## Citation
+
+If you use **dutch-med-hips** in academic work, please cite:
+
+```bibtex
+@software{Builtjes_DIAGNijmegen_dutch-med-hips_2026,
+  author  = {Builtjes, L. and Bosma, J. S. and Hering, A.},
+  title   = {DIAGNijmegen/dutch-med-hips: v1.0.1-zenodo},
+  year    = {2026},
+  publisher = {Zenodo},
+  doi     = {10.5281/zenodo.18415297}
+}
+```
+
+---
+
+
+---
