@@ -432,6 +432,3 @@ If you use **dutch-med-hips** in academic work, please cite:
 ```
 
 ---
-
-
----
