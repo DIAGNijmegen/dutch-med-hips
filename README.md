@@ -417,7 +417,7 @@ This is useful when you need to:
 
 ---
 
-## Citation
+## Citation & Attribution
 
 If you use **dutch-med-hips** in academic work, please cite:
 
@@ -430,5 +430,14 @@ If you use **dutch-med-hips** in academic work, please cite:
   doi     = {10.5281/zenodo.18415297}
 }
 ```
+
+This tool was developed by the **Oncology Research Group** at the Diagnostic Image Analysis Group (DIAG), Radboud University Medical Center.
+🔗 [diagnijmegen.nl/research/oncology](https://www.diagnijmegen.nl/research/oncology/)
+
+**Contact:**
+| Name | Email |
+|---|---|
+| Luc Builtjes | [luc.builtjes@radboudumc.nl](mailto:luc.builtjes@radboudumc.nl) |
+| Alessa Hering | [alessa.hering@radboudumc.nl](mailto:alessa.hering@radboudumc.nl) |
 
 ---
